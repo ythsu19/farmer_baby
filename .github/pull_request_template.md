@@ -3,6 +3,8 @@
 詳細規範請見 TEAM_GUIDE.md
 -->
 
+https://github.com/ythsu19/farmer_baby
+
 ## 這個 PR 做了什麼？
 
 <!-- 一兩句話說明這次改動的目的，不是列檔案 -->

@@ -1,5 +1,7 @@
 # Farmer Baby — 團隊協作指南
 
+https://github.com/ythsu19/farmer_baby
+
 本指南規範組員在這個 Cocos Creator 專案的協作流程，目的是 **減少 git conflict** 並避免常見的資源／場景錯誤。
 
 請所有組員在開始開發前完整讀一次。

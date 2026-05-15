@@ -1,5 +1,7 @@
 # Git 使用指南（組員必讀）
 
+https://github.com/ythsu19/farmer_baby
+
 這份文件告訴你**每天上工到下班、從寫 code 到 PR 合併**的具體 git 指令流程。
 
 搭配 [TEAM_GUIDE.md](TEAM_GUIDE.md) 一起讀。
