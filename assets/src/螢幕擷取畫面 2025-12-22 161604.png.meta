@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "6015dcac-2d28-46a7-83eb-aefd0334b4bd",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 176,
+  "height": 121,
+  "platformSettings": {},
+  "subMetas": {
+    "螢幕擷取畫面 2025-12-22 161604": {
+      "ver": "1.0.6",
+      "uuid": "ddec1d90-c0a8-433e-a901-de099efcc82c",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "6015dcac-2d28-46a7-83eb-aefd0334b4bd",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 176,
+      "height": 121,
+      "rawWidth": 176,
+      "rawHeight": 121,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
