@@ -44,33 +44,49 @@ git remote -v           # 應該看到 origin 指向 GitHub
 
 ---
 
-## 1. 每日工作流程（牢記這 7 步）
+## 1. 每日工作流程（牢記這 10 步，每次新功能都照走）
 
 ```
-1. 上班    → git pull --rebase origin main
-2. 開分支  → git checkout -b feature/myname-task
-3. 寫 code → 在 Creator + VS Code 編輯
-4. 看狀態  → git status / git diff
-5. 提交    → git add <files> + git commit -m "..."
-6. 推送    → git push -u origin feature/myname-task
-7. 開 PR   → 在 GitHub 上開 PR、貼模板、找人 review
+ 1. 同步 main      → git checkout main
+                   → git pull --rebase origin main
+ 2. 開分支         → git checkout -b feature/myname-task
+ 3. 寫 code        → 在 Creator + VS Code 編輯
+ 4. 看狀態         → git status / git diff
+ 5. 加檔案         → git add <files>
+ 6. 提交           → git commit -m "feat: ..."
+ 7. 推到 GitHub    → git push -u origin feature/myname-task
+ 8. 開 PR          → 用 push 印出的網址，或 pull/new/<branch>
+ 9. 合併 PR        → 在 GitHub 點 Merge pull request
+10. 清理本機分支   → git checkout main
+                   → git pull --rebase origin main
+                   → git branch -d feature/myname-task
 ```
 
-### Step 1-1：上工先同步 main
+> **核心觀念**：`git push` **只是把你的分支備份到 GitHub**，不會自動進 main。
+> 要進 main 永遠要走 PR（步驟 8-9）。
+
+### Step 1：同步 main
 
 ```powershell
 git checkout main
 git pull --rebase origin main
 ```
 
-> **`--rebase`** 很重要 —— 它會把遠端的修改放在你本地修改的下面，歷史線比較乾淨。
+> **`--rebase`** 把遠端的修改放在你本地修改下面，歷史線比較乾淨。
 
-### Step 1-2：開自己的分支
+### Step 2：開自己的分支
 
 **分支命名**：`<類型>/<你的英文名>-<簡短功能>`
 
 ```powershell
 git checkout -b feature/alice-shop-ui
+```
+
+驗證：`git branch` 應該看到 `*` 在你新分支前面：
+
+```
+* feature/alice-shop-ui
+  main
 ```
 
 範例：
@@ -80,12 +96,13 @@ git checkout -b feature/alice-shop-ui
 
 > ❌ **不要** 在 `main` 上直接寫 code。
 > ❌ **不要** 取像 `test`、`tmp`、`dev` 這種模糊的名字。
+> ⚠️ **沒有 `git branch -b` 這個指令** —— 開新分支用 `git checkout -b`。
 
-### Step 1-3：寫 code（在 Creator 與 VS Code 之間切換）
+### Step 3：寫 code（在 Creator 與 VS Code 之間切換）
 
 照 [TEAM_GUIDE 第 6 節](TEAM_GUIDE.md) 的分工，**只動自己負責的 prefab 與腳本**。
 
-### Step 1-4：看自己改了什麼
+### Step 4：看自己改了什麼
 
 ```powershell
 git status              # 看哪些檔案被改 / 新增 / 刪除
@@ -98,9 +115,7 @@ git diff --stat         # 只看「哪些檔案改了幾行」摘要
 - 不小心 commit 到 `library/`（不應該發生，但要確認）
 - 不小心改到別人的檔案
 
-### Step 1-5：提交（commit）
-
-**先加要 commit 的檔案**：
+### Step 5：加檔案
 
 ```powershell
 # 加單個檔案
@@ -116,7 +131,7 @@ git add .
 
 > **永遠記得 `.meta` 要跟資源一起 add**，否則組員端會壞。
 
-**寫 commit 訊息**：
+### Step 6：commit
 
 ```powershell
 git commit -m "feat: 新增 ShopPanel 介面與購買流程"
@@ -136,7 +151,7 @@ type 可選：feat / fix / refactor / chore / docs / style / test
 - `refactor: 用 systemEvent 取代 HUD 的 cc.find`
 - `chore: 整理 textures/ 目錄結構`
 
-### Step 1-6：推到遠端
+### Step 7：push 到 GitHub
 
 **第一次推這個分支**：
 
@@ -146,20 +161,112 @@ git push -u origin feature/alice-shop-ui
 
 > `-u` 是「設定 upstream」，只有第一次需要。之後用 `git push` 就好。
 
-**後續推送**：
+跑完後**仔細看終端機輸出**，你會看到類似這段：
+
+```
+remote: Create a pull request for 'feature/alice-shop-ui' on GitHub by visiting:
+remote:      https://github.com/ythsu19/farmer_baby/pull/new/feature/alice-shop-ui
+```
+
+⭐ **那條 URL 就是你的 PR 入口**，按住 Ctrl + 點它就會跳到開 PR 頁面。
+
+**後續推送**（同一分支再次推）：
 
 ```powershell
 git push
 ```
 
-### Step 1-7：在 GitHub 開 PR
+### Step 8：開 PR — 三種方式擇一
 
-1. 打開 repo 的 GitHub 頁面
-2. 它會跳出黃色橫幅「Compare & pull request」→ 點下去
-3. PR 模板（`.github/pull_request_template.md`）會自動帶出
-4. **完整填寫每一欄**，勾選清單
-5. 在右邊指定 reviewer
-6. Create pull request
+#### 方式 A（最快）：用 push 完印出的網址
+
+remote: Create a pull request for 'feature/pkboie-setting' on GitHub by visiting:
+remote:      https://github.com/ythsu19/farmer_baby/pull/new/feature/pkboie-setting
+
+
+#### 方式 B：用固定的網址規律
+
+```
+https://github.com/ythsu19/farmer_baby/pull/new/<你的分支名>
+```
+
+範例：
+👉 https://github.com/ythsu19/farmer_baby/pull/new/feature/alice-shop-ui
+
+**記住這個格式**，換分支只要改最後一段。
+
+#### 方式 C：從 GitHub 網頁找
+
+1. 打開 https://github.com/ythsu19/farmer_baby
+2. 上方分頁點 **Pull requests**
+3. 點右上角綠色按鈕 **New pull request**
+4. 兩個下拉選單選成：
+   ```
+   base: main   ←   compare: feature/alice-shop-ui
+   ```
+5. 點 **Create pull request**
+
+> ⚠️ **「找不到 PR」常見原因**：點到 Pull requests 看到 `0 Open` 以為沒功能 →
+> 其實要再點右上角綠色的 **New pull request** 才會跳到開 PR 頁面。
+
+#### 進到 PR 頁面後
+
+1. 標題會自動帶 commit message，可以改
+2. 內容會自動帶 [.github/pull_request_template.md](.github/pull_request_template.md) 模板
+3. **完整填寫每一欄**，勾選清單
+4. 右邊指定 reviewer
+5. 點綠色 **Create pull request**
+
+### Step 9：合併 PR
+
+PR 建立後，在**同一頁面**拉到下方：
+
+```
+┌─────────────────────────────────────────┐
+│ ✓ This branch has no conflicts...      │
+│                                         │
+│  [ Merge pull request ▼ ]              │  ← 點這個綠色按鈕
+└─────────────────────────────────────────┘
+```
+
+1. 點綠色 **Merge pull request**
+2. 確認標題 → 點 **Confirm merge**
+3. 看到 **Pull request successfully merged** 就成功了
+
+### Step 10：本機同步 + 清理分支
+
+回到 VS Code 終端機：
+
+```powershell
+git checkout main                              # 切回 main
+git pull --rebase origin main                  # 把剛合進去的拉下來
+git branch -d feature/alice-shop-ui            # 刪掉本機已合併的分支
+```
+
+✅ 完成。下次開新功能再回到 Step 1。
+
+---
+
+### branch 跟 main 怎麼互動？
+
+```
+時間 →
+
+main:           A───B───────────M1──────────M2
+                        \      /     \      /
+feature/test:            C────/       \    /
+                                       \  /
+feature/setting:                        D
+```
+
+- **A, B**：main 原本的 commit
+- **C**：你在 `feature/pkboie-test` 做的工作
+- **M1**：你的 PR 被 merge 進 main
+- **D**：你在新分支 `feature/pkboie-setting` 做的工作
+- **M2**：下一個要合的 PR
+
+**每開一個 PR = 把一個圓圈接到 main 上。**
+push 只是把圓圈備份到 GitHub，merge 才是真正接上去。
 
 ---
 
@@ -328,6 +435,9 @@ git add <files>                                       # 加檔案
 git commit -m "feat: ..."                             # 提交
 git push -u origin feature/myname-task                # 第一次推
 git push                                              # 之後推
+
+# 推完送 PR
+# step 8
 
 # === 同步 main ===
 git checkout main; git pull --rebase origin main
