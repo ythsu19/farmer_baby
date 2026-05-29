@@ -141,16 +141,23 @@
 - [ ] Tutorial scene 拖入 Player 節點，Play 測試手感
 
 ### Phase 2 收尾（box2d 物理 + 多層碰撞）
-- [ ] Tiled 內為 `Tutorial.tmx` 建 `ground` 物件層，畫基本地面
+- [x] Tiled 內為 `Tutorial.tmx` 建 `ground` 物件層 + 畫地面
+- [x] Tiled 內為 `Tutorial.tmx` 建 `floor` 物件層 + 畫平台
 - [ ] （可選）建 `wall` 物件層 畫左右邊界
 - [ ] （可選）開 Tiled Project 設定 Custom Types
-- [ ] Tutorial scene 啟用 physicsManager + 設重力 `(0, -1800)`
-- [ ] TiledMap 節點 Add `TiledColliderBuilder`
+- [ ] Cocos：Tutorial scene 啟用 physicsManager + 設重力 `(0, -1800)`
+- [ ] Cocos：把 `Tutorial.tmx` 拖到場景 → 變成 TiledMap 節點（若還沒）
+- [ ] Cocos：TiledMap 節點 Add `TiledColliderBuilder`
   - [ ] `Layers` 加一筆：`ground` / tag=1 / sensor=❌
-- [ ] Player 節點 Add `cc.RigidBody`（Dynamic、Fixed Rotation）+ `cc.PhysicsBoxCollider`
-- [ ] Play 測試：掉到地面 / 走 / 跳 / 雙跳全部正常
-- [ ] 微調 Player @property 數值找出最爽的手感
-- [ ] Commit 包含：Tutorial.tmx + Tutorial.fire + Player.prefab + settings/project.json
+  - [ ] `Layers` 加一筆：`floor` / tag=2 / sensor=❌
+  - [ ] 勾 `Debug` 看 console log
+- [ ] Cocos：Player 節點
+  - [ ] 加 `cc.RigidBody`（Dynamic、Fixed Rotation）
+  - [ ] 加 `cc.PhysicsBoxCollider`（Size 配 Sprite、Density=1、Friction=0、Restitution=0）
+  - [ ] 加 `Player.ts`
+- [ ] Play 測試：掉到地面 / 走 / 跳 / 雙跳
+- [ ] 微調 Player @property 數值找最爽手感
+- [ ] Commit：`Tutorial.tmx`(+.meta) + `Tutorial.fire` + `Player.prefab`(+.meta) + `settings/project.json`
 
 ### 後續 Phase 開啟前的標準動作
 - [ ] 翻開 [character_plan.md](character_plan.md) 看下個 Phase
