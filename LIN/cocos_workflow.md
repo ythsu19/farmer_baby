@@ -28,70 +28,95 @@
 
 ---
 
-## Tiled 工作流程規定
+## Tiled + Cocos Group 工作流程規定（Mario 模式）
 
-### 1. 物件層命名
-**每種地形類型一個獨立物件層**，命名規範：
+### 1. Tiled 物件層
+**只用一個物件層**，命名為 `objects`。不再為每種類型開一層。
 
-| 物件層名稱 | 用途 |
-|-----------|------|
-| `ground` | 主要可踩地面 |
-| `floor` | 次級平台 / 浮空板 |
-| `wall` | 牆壁 |
-| `ceiling` | 天花板（要時才加） |
-| `death` | 死亡區（尖刺、毒水、墜落） |
-| `trigger` | 教學提示 / checkpoint 觸發 |
-| `pickup` | 道具 / 收集物 |
-| `spawn` | 重生點 / 出生點（用點物件，type 標 player/enemy） |
+### 2. Tiled 物件命名規則
+物件的 **Name** 屬性 = 類別名稱，也會直接變成 Cocos 內的 group 名稱。
 
-不要把多種類型畫在同一層。
+| 物件 name | 用途 | 工具 |
+|-----------|------|------|
+| `ground` | 主要可踩地面 | 矩形 |
+| `floor` | 次級平台 / 浮空板 | 矩形 |
+| `wall` | 牆壁 | 矩形 |
+| `slope` | 斜坡 | 多邊形 |
+| `coin` | 金幣（sensor） | 矩形 |
+| `item` | 道具（sensor） | 矩形 |
+| `trigger` | 教學提示 / checkpoint（sensor） | 矩形 |
+| `goal` | 通關點（sensor） | 矩形 |
+| `player_spawn` | Player 出生點（不建碰撞器） | 點 |
+| `enemy_spawn` | 敵人出生點（不建碰撞器） | 點 |
 
-### 2. Collision Tag 慣例
-給 `LayerSpec.tag` 用：
+規則：
+- 名稱**含 "spawn" 字串** → `TiledColliderBuilder` 視為出生點，不建碰撞器，只存位置
+- 名稱在 `sensorNames`（coin/item/pickup/trigger/goal）→ sensor collider
+- 其他名稱 → solid collider
 
-| Tag | 用途 | 是否 Sensor |
-|-----|------|------------|
-| 0 | 未分類 | — |
-| 1 | ground | ❌ |
-| 2 | floor | ❌ |
-| 10 | wall | ❌ |
-| 11 | ceiling | ❌ |
-| 100 | death | ✅ |
-| 200 | trigger | ✅ |
-| 300 | pickup | ✅ |
+### 3. Cocos Group Manager
+`Project → Project Settings → Group Manager` 必須有對應 group：
 
-> Sensor = trigger，不阻擋物理，只發 contact event。
+| Group | 對應 Tiled 物件 name |
+|-------|---------------------|
+| `player` | Player 節點本身（Tiled 內無對應，是 Cocos 內 Player.prefab 的 group） |
+| `ground` | `ground` |
+| `floor` | `floor` |
+| `wall` | `wall` |
+| `slope` | `slope` |
+| `coin` | `coin` |
+| `item` | `item` |
+| `enemy` | enemy / monster 節點群 |
+| `trigger` | `trigger` |
+| `goal` | `goal` |
 
-### 3. Tiled Project 設定
-- 第一次：`File → New → New Project`，資料夾選 `d:\farmer_baby\assets\map\`
-- `Project → Custom Types`（Tiled 1.9+）建立 ground/floor/... 的群組，之後每個 .tmx 都能套用
-- Project 檔（`.tiled-project`）也進 git，組員共用
+**Group name 跟 Tiled 物件 name 必須完全一致（大小寫敏感）。**
+
+### 4. Cocos 碰撞矩陣建議
+`Group Manager` 內勾選：
+
+|         | player | ground | floor | wall | slope | coin | item | enemy |
+|---------|:------:|:------:|:-----:|:----:|:-----:|:----:|:----:|:-----:|
+| player  |   ❌   |   ✅   |  ✅   |  ✅  |  ✅   |  ✅  |  ✅  |  ✅   |
+| ground  |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  ✅   |
+| floor   |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  ✅   |
+| wall    |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  ✅   |
+| slope   |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  ✅   |
+| coin    |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  —    |
+| item    |   ✅   |   —    |  —    |  —   |  —    |  —   |  —   |  —    |
+| enemy   |   ✅   |   ✅   |  ✅   |  ✅  |  ✅   |  —   |  —   |  —    |
+
+主原則：
+- 玩家跟所有東西碰
+- 地形（ground/floor/wall/slope）跟 player + enemy 碰
+- 收集物（coin/item）只跟 player 碰
+- enemy 跟地形與 player 碰
+
+> 設好後 `settings/project.json` 會自動更新，要 commit 進去。
 
 ---
 
-## 加新地形類型的標準步驟
-
-每次要在 Tiled 多加一種地形 → 都照這走：
+## 加新 Tiled 物件類別的標準步驟
 
 ### 步驟 1 — Tiled 編輯器
-- [ ] 圖層 → 新增物件層，命名為 `<新類型名>`（依命名規範）
-- [ ] 用矩形 / 多邊形 / 折線工具畫出碰撞區
+- [ ] 在 `objects` 層拉新物件
+- [ ] 設 **Name** 為新類別名稱（依命名規則）
 - [ ] 儲存 .tmx
 
-### 步驟 2 — Cocos Creator
-- [ ] 確認 Tutorial scene 的 TiledMap 節點上有 `TiledColliderBuilder`
-- [ ] 在 `Layers` 陣列點 **+**
-- [ ] 新筆位填：
-  - `Layer Name` = Tiled 內的名字
-  - `Tag` = 對應上方 Tag 慣例的數字
-  - `Sensor` = 看 Tag 慣例（死亡區 / trigger / pickup 都要勾）
-- [ ] Play 測試
-- [ ] 看 console 確認 `[TiledColliderBuilder] "<name>" → N 個碰撞器`
+### 步驟 2 — Cocos Project Settings
+- [ ] `Project → Project Settings → Group Manager`
+- [ ] 確認新類別已是 group；沒有 → 加 group
+- [ ] 在矩陣勾選與 player（及其他必要 group）的碰撞關係
+- [ ] 儲存
 
-### 步驟 3 — Commit
-- [ ] `git status`
-- [ ] `git add assets/map/Tutorial.tmx*` + `git add assets/scenes/Tutorial.fire*`（如果有改 scene）
-- [ ] `git commit -m "feat(map): 加入 <類型> 物件層"`
+### 步驟 3 — 程式（若需要 sensor 而非 solid）
+- [ ] 開 [TiledColliderBuilder.ts](../assets/scripts/level/TiledColliderBuilder.ts) 的 `sensorNames` 預設值，或在 Inspector 內手動加
+- [ ] 加進 `sensorNames` 陣列
+
+### 步驟 4 — 測試 + Commit
+- [ ] Play 測試 Tutorial scene
+- [ ] `git add assets/map/Tutorial.tmx* settings/project.json`
+- [ ] `git commit -m "feat(map): 加入 <類別> 物件"`
 
 ---
 
@@ -140,23 +165,24 @@
 - [ ] Cocos 內把 `Player.ts` 掛到 Player 節點
 - [ ] Tutorial scene 拖入 Player 節點，Play 測試手感
 
-### Phase 2 收尾（box2d 物理 + 多層碰撞）
-- [x] Tiled 內為 `Tutorial.tmx` 建 `ground` 物件層 + 畫地面
-- [x] Tiled 內為 `Tutorial.tmx` 建 `floor` 物件層 + 畫平台
-- [ ] （可選）建 `wall` 物件層 畫左右邊界
-- [ ] （可選）開 Tiled Project 設定 Custom Types
-- [ ] Cocos：Tutorial scene 啟用 physicsManager + 設重力 `(0, -1800)`
-- [ ] Cocos：把 `Tutorial.tmx` 拖到場景 → 變成 TiledMap 節點（若還沒）
+### Phase 2 收尾（Mario 模式：Tiled name → Cocos Group）
+- [x] Tiled：建 `objects` 物件層
+- [x] Tiled：拉物件命名為 ground、floor
+- [ ] Tiled：（可選）多拉 `wall`、`coin`、`player_spawn`、`enemy_spawn`
+- [ ] Cocos：**Project Settings → Group Manager** 加 group：`player`, `ground`, `floor`, `wall`, `coin`, `item`, `enemy`
+- [ ] Cocos：Group Manager 矩陣依上方表勾選（最重要：player ↔ ground/floor 要勾）
+- [ ] Cocos：Tutorial scene 啟用 physicsManager + 設重力 `(0, -1800)`（暫放 Player.ts onLoad）
+- [ ] Cocos：把 `Tutorial.tmx` 拖到場景 → TiledMap 節點
 - [ ] Cocos：TiledMap 節點 Add `TiledColliderBuilder`
-  - [ ] `Layers` 加一筆：`ground` / tag=1 / sensor=❌
-  - [ ] `Layers` 加一筆：`floor` / tag=2 / sensor=❌
-  - [ ] 勾 `Debug` 看 console log
+  - [ ] `Object Layer Name` = `objects`
+  - [ ] 勾 `Debug`
 - [ ] Cocos：Player 節點
+  - [ ] Inspector 上方 **Group** 下拉 → 選 `player`
   - [ ] 加 `cc.RigidBody`（Dynamic、Fixed Rotation）
   - [ ] 加 `cc.PhysicsBoxCollider`（Size 配 Sprite、Density=1、Friction=0、Restitution=0）
   - [ ] 加 `Player.ts`
 - [ ] Play 測試：掉到地面 / 走 / 跳 / 雙跳
-- [ ] 微調 Player @property 數值找最爽手感
+- [ ] 微調 Player @property 找最爽手感
 - [ ] Commit：`Tutorial.tmx`(+.meta) + `Tutorial.fire` + `Player.prefab`(+.meta) + `settings/project.json`
 
 ### 後續 Phase 開啟前的標準動作
@@ -168,3 +194,4 @@
 ## 修改紀錄
 
 - `2026-05-29` 建立此規定文件，定義 Tiled 多物件層命名 + Tag 慣例 + 標準步驟
+- `2026-05-29` 改成 Mario 模式：單一 `objects` 物件層 + 物件 name 對應 Cocos Group + Group Manager 矩陣決定碰撞；移除 Tag 慣例，改用 Group 命名

@@ -25,26 +25,27 @@
 
 ---
 
-## Phase 2：升級到 box2d 物理（✅ 程式部分完成）
+## Phase 2：Mario 模式碰撞系統（✅ 程式部分完成）
 
-> 目標：丟掉 `tempGroundY`，用真實物理 + Tiled 多物件層地形。
+> 目標：仿 Mario — 單一 Tiled `objects` 物件層 + 物件 name → Cocos Group → Group Manager 矩陣決定碰撞。
 > 工作流程規定 → [cocos_workflow.md](cocos_workflow.md)
 > 設定步驟細節 → [collision_setup.md](collision_setup.md)
 
-- [x] **2-1** 寫 `TiledColliderBuilder.ts`（v1：單一 collision 層）
-- [x] **2-2** Player.ts SECTION 3 改寫：`linearVelocity` 取代 transform 移動
-- [x] **2-3** 落地判定改 `onBeginContact` 用法線 y 判定（搭配 `groundNormalThreshold`）
-- [x] **2-4** 移除 `gravity` 與 `tempGroundY` 屬性（box2d 接手）
-- [x] **2-5** `gravityScale` 控制下落重力倍率，並設 `fixedRotation` + `enabledContactListener`
-- [x] **2-6** 重構 `TiledColliderBuilder` v2：支援多物件層（ground/floor/wall...），每層獨立 LayerSpec
-- [ ] **2-7** Tiled 內 → 加 `ground` 物件層 + 畫地形（依 [cocos_workflow.md](cocos_workflow.md) 「Tiled 工作流程規定」）
-- [ ] **2-8** Cocos 內 → 啟用物理 + TiledMap 掛 TiledColliderBuilder + Player 加物理元件（依 [cocos_workflow.md](cocos_workflow.md) 「Phase 2 收尾 TODO」）
-- [ ] **2-9** Play 測試：掉到地板、走、跳、雙跳
+- [x] **2-1** Player.ts 切換到 box2d：`linearVelocity` 取代 transform 移動
+- [x] **2-2** 落地判定用 `onBeginContact` + 法線 y（`groundNormalThreshold`）
+- [x] **2-3** 移除 `gravity` 與 `tempGroundY`；改 `gravityScale` 控下落
+- [x] **2-4** Player.ts 設 `fixedRotation` + `enabledContactListener`
+- [x] **2-5** `TiledColliderBuilder` v3：單一物件層 + name 驅動 Cocos Group（Mario 模式）
+- [x] **2-6** Tiled：建 `objects` 物件層 + 拉 ground、floor 物件
+- [ ] **2-7** Cocos：Project Settings → Group Manager 加 group 與碰撞矩陣（依 [cocos_workflow.md](cocos_workflow.md)）
+- [ ] **2-8** Cocos：啟用物理 + Tutorial.tmx 拖入場景 + TiledMap 掛 TiledColliderBuilder + Player 設 group 與 RigidBody/Collider
+- [ ] **2-9** Play 測試：掉到 ground / 走 / 跳 / 雙跳
 
-**🛑 Commit point 2（已 commit 3 次）**：
+**🛑 Commit point 2（已 commit 4 次）**：
 - `feat(level): Tiled 物件層 → box2d 靜態碰撞器`
 - `feat(player): 切換到 box2d 物理`
 - `refactor(level): TiledColliderBuilder 改用多物件層架構`
+- `redesign(level): Mario 模式 — name-driven Cocos Group`
 
 ---
 
@@ -118,3 +119,4 @@
 - `2026-05-29` 重新設計：寫 `player_design.md`；`Player.ts` 升級加入 coyote time + jump buffer + accel/decel + 明確 state machine + event 詞彙
 - `2026-05-29` Phase 2：寫 `TiledColliderBuilder.ts`（Tiled 物件層 → box2d 碰撞器）；`Player.ts` 切換到 box2d 物理（linearVelocity + onBeginContact + gravityScale）；寫 `collision_setup.md` 設定備忘
 - `2026-05-29` 重構：`TiledColliderBuilder` 改用多物件層 LayerSpec 架構（ground/floor/wall 各一層）；新增 `cocos_workflow.md` LIN 個人的 Cocos 工作流程規定 + 標準步驟 + 動態 TODO 清單
+- `2026-05-29` 重新設計：改成 Mario 模式 — 單一 `objects` 物件層 + 物件 name 直接對應 Cocos node.group + Group Manager 矩陣處理碰撞；移除 LayerSpec / Tag 慣例；docs 全面更新
