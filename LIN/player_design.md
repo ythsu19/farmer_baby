@@ -101,17 +101,22 @@ assets/scripts/player/
 
 ---
 
-## 為什麼不直接用 box2d
+## 物理系統（Phase 2 已切到 box2d）
 
-第一階段先用 transform-based + `tempGroundY` 是因為：
-- Player.prefab 還不一定有 RigidBody 設好
-- Tiled map 碰撞層還沒在 Cocos 內配
-- 先讓「按鍵能動」可玩，再升級到物理
+目前狀態：
+- `node.x += vx*dt` → `rigidBody.linearVelocity` ✅
+- 自製重力 → `cc.PhysicsManager.gravity` + `rigidBody.gravityScale`（下落倍率） ✅
+- `_checkGround` 硬寫 Y → `onBeginContact` 法線 y 判定 ✅
+- `tempGroundY` 屬性已移除 ✅
+- 落地法線門檻獨立 `groundNormalThreshold` 屬性（預設 -0.5），避免側撞牆被當落地 ✅
+- 設了 `fixedRotation` 不被撞翻、`enabledContactListener` 才會觸發 contact 事件 ✅
 
-Phase 2 會切到 box2d：
-- `node.x += vx*dt` → `rigidBody.linearVelocity = ...`
-- `_checkGround` → `onBeginContact` 法線判定
-- 重力交給 box2d，移除 `gravity` 屬性
+地形碰撞器透過 `assets/scripts/level/TiledColliderBuilder.ts` 從 Tiled 物件層自動生：
+- 矩形 → BoxCollider
+- 多邊形 → PolygonCollider（斜坡、L 型平台）
+- 折線 → ChainCollider（單向地板、開放邊界）
+
+設定步驟見 [collision_setup.md](collision_setup.md)。
 
 ---
 
@@ -142,8 +147,8 @@ class Player {
 
 ## 後續演進路徑
 
-1. **現在**：單檔 Player.ts，已分 SECTION，可直接執行
-2. **Phase 2**：升級物理（box2d + Tiled）
+1. ~~單檔 Player.ts，已分 SECTION，可直接執行~~ ✅
+2. ~~Phase 2：升級物理（box2d + Tiled）~~ ✅
 3. **Phase 3**：抽 PlayerInput、PlayerAnimator
 4. **Phase 4**：加 PlayerHealth、PlayerCombat
 5. **Phase 5**：可選 — 拆 PlayerStateMachine 出來

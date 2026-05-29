@@ -25,17 +25,23 @@
 
 ---
 
-## Phase 2：升級到 box2d 物理
+## Phase 2：升級到 box2d 物理（✅ 程式部分完成）
 
 > 目標：丟掉 `tempGroundY`，用真實物理 + Tiled 地形。
+> 設定步驟見 [collision_setup.md](collision_setup.md)。
 
-- [ ] **2-1** Tiled 地形碰撞層在 Cocos 內設定好（TiledMap collider）
-- [ ] **2-2** Player node 加 `cc.RigidBody`（Dynamic）+ `cc.PhysicsBoxCollider`
-- [ ] **2-3** 改寫 Player.ts SECTION 3：`linearVelocity` 取代 `_applyPosition`
-- [ ] **2-4** 落地判定改 `onBeginContact` 法線 y 方向
-- [ ] **2-5** 移除 `gravity` 與 `tempGroundY` 屬性（box2d 接手）
+- [x] **2-1** 寫 `assets/scripts/level/TiledColliderBuilder.ts`：讀 Tiled 物件層 → 自動生 box2d 靜態碰撞器（矩形/多邊形/折線）
+- [x] **2-2** Player.ts SECTION 3 改寫：`linearVelocity` 取代 transform 移動
+- [x] **2-3** 落地判定改 `onBeginContact` 用法線 y 判定（搭配 `groundNormalThreshold`）
+- [x] **2-4** 移除 `gravity` 與 `tempGroundY` 屬性（box2d 接手）
+- [x] **2-5** `gravityScale` 控制下落重力倍率，並設 `fixedRotation` + `enabledContactListener`
+- [ ] **2-6** 在 Tiled 內新增 `collision` 物件層並畫地形（**LIN 在 Tiled 做**）
+- [ ] **2-7** 在 Tutorial scene 內：啟用 physicsManager、TiledMap 掛 TiledColliderBuilder、Player 加 RigidBody+Collider（**LIN 在 Cocos 做**）
+- [ ] **2-8** Play 測試：應該掉到地板上、能走、能跳、能雙跳
 
-**🛑 Commit point 2**：`feat(player): 切換到 box2d 物理`
+**🛑 Commit point 2（已 commit）**：
+- `feat(level): Tiled 物件層 → box2d 靜態碰撞器`
+- `feat(player): 切換到 box2d 物理`
 
 ---
 
@@ -107,3 +113,4 @@
 - `2026-05-28` 建立此計畫文件
 - `2026-05-29` 切到 `feature/pkboie-player_tutorial` 分支；清理 main 上 CRLF 雜訊與空資料夾雜訊；commit `Tutorial.fire`；建 `Player.ts`（基礎移動/跳躍/面向）
 - `2026-05-29` 重新設計：寫 `player_design.md`；`Player.ts` 升級加入 coyote time + jump buffer + accel/decel + 明確 state machine + event 詞彙
+- `2026-05-29` Phase 2：寫 `TiledColliderBuilder.ts`（Tiled 物件層 → box2d 碰撞器）；`Player.ts` 切換到 box2d 物理（linearVelocity + onBeginContact + gravityScale）；寫 `collision_setup.md` 設定備忘
