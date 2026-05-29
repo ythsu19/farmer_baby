@@ -27,21 +27,24 @@
 
 ## Phase 2：升級到 box2d 物理（✅ 程式部分完成）
 
-> 目標：丟掉 `tempGroundY`，用真實物理 + Tiled 地形。
-> 設定步驟見 [collision_setup.md](collision_setup.md)。
+> 目標：丟掉 `tempGroundY`，用真實物理 + Tiled 多物件層地形。
+> 工作流程規定 → [cocos_workflow.md](cocos_workflow.md)
+> 設定步驟細節 → [collision_setup.md](collision_setup.md)
 
-- [x] **2-1** 寫 `assets/scripts/level/TiledColliderBuilder.ts`：讀 Tiled 物件層 → 自動生 box2d 靜態碰撞器（矩形/多邊形/折線）
+- [x] **2-1** 寫 `TiledColliderBuilder.ts`（v1：單一 collision 層）
 - [x] **2-2** Player.ts SECTION 3 改寫：`linearVelocity` 取代 transform 移動
 - [x] **2-3** 落地判定改 `onBeginContact` 用法線 y 判定（搭配 `groundNormalThreshold`）
 - [x] **2-4** 移除 `gravity` 與 `tempGroundY` 屬性（box2d 接手）
 - [x] **2-5** `gravityScale` 控制下落重力倍率，並設 `fixedRotation` + `enabledContactListener`
-- [ ] **2-6** 在 Tiled 內新增 `collision` 物件層並畫地形（**LIN 在 Tiled 做**）
-- [ ] **2-7** 在 Tutorial scene 內：啟用 physicsManager、TiledMap 掛 TiledColliderBuilder、Player 加 RigidBody+Collider（**LIN 在 Cocos 做**）
-- [ ] **2-8** Play 測試：應該掉到地板上、能走、能跳、能雙跳
+- [x] **2-6** 重構 `TiledColliderBuilder` v2：支援多物件層（ground/floor/wall...），每層獨立 LayerSpec
+- [ ] **2-7** Tiled 內 → 加 `ground` 物件層 + 畫地形（依 [cocos_workflow.md](cocos_workflow.md) 「Tiled 工作流程規定」）
+- [ ] **2-8** Cocos 內 → 啟用物理 + TiledMap 掛 TiledColliderBuilder + Player 加物理元件（依 [cocos_workflow.md](cocos_workflow.md) 「Phase 2 收尾 TODO」）
+- [ ] **2-9** Play 測試：掉到地板、走、跳、雙跳
 
-**🛑 Commit point 2（已 commit）**：
+**🛑 Commit point 2（已 commit 3 次）**：
 - `feat(level): Tiled 物件層 → box2d 靜態碰撞器`
 - `feat(player): 切換到 box2d 物理`
+- `refactor(level): TiledColliderBuilder 改用多物件層架構`
 
 ---
 
@@ -114,3 +117,4 @@
 - `2026-05-29` 切到 `feature/pkboie-player_tutorial` 分支；清理 main 上 CRLF 雜訊與空資料夾雜訊；commit `Tutorial.fire`；建 `Player.ts`（基礎移動/跳躍/面向）
 - `2026-05-29` 重新設計：寫 `player_design.md`；`Player.ts` 升級加入 coyote time + jump buffer + accel/decel + 明確 state machine + event 詞彙
 - `2026-05-29` Phase 2：寫 `TiledColliderBuilder.ts`（Tiled 物件層 → box2d 碰撞器）；`Player.ts` 切換到 box2d 物理（linearVelocity + onBeginContact + gravityScale）；寫 `collision_setup.md` 設定備忘
+- `2026-05-29` 重構：`TiledColliderBuilder` 改用多物件層 LayerSpec 架構（ground/floor/wall 各一層）；新增 `cocos_workflow.md` LIN 個人的 Cocos 工作流程規定 + 標準步驟 + 動態 TODO 清單
