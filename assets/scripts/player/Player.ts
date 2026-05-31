@@ -207,6 +207,7 @@ export default class Player extends cc.Component {
 
     // ──────────────────────────────────────────────
     //  SECTION 4：Facing
+    //  Player 只決定面向（依速度），實際視覺翻面由 PlayerAnimator 接 facing-changed event 處理。
     // ──────────────────────────────────────────────
     private _updateFacing() {
         const vx = this._rb.linearVelocity.x;
@@ -214,7 +215,6 @@ export default class Player extends cc.Component {
         const shouldFaceRight = vx > 0;
         if (shouldFaceRight === this._facingRight) return;
         this._facingRight = shouldFaceRight;
-        this.node.scaleX = shouldFaceRight ? Math.abs(this.node.scaleX) : -Math.abs(this.node.scaleX);
         this.node.emit('facing-changed', shouldFaceRight);
     }
 
