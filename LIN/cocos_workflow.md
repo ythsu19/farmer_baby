@@ -25,6 +25,10 @@
 - ❌ 編輯 `.meta` 內的 UUID
 - ❌ 同時開組員正在編的場景 / prefab（先在群組確認）
 - ❌ commit 到 `main`
+- ❌ 同節點混用 `cc.BoxCollider` 跟 `cc.PhysicsBoxCollider`（兩套系統不相容，詳見 [collision_setup.md §0](collision_setup.md#0-先搞懂cc-boxcollider-vs-cc-physicsboxcollider)）
+
+### 碰撞器選擇規定
+farmer_baby 統一用 **`cc.PhysicsBoxCollider` + `cc.RigidBody`（box2d 物理系統）**，不要用 `cc.BoxCollider`（碰撞系統）。混用會無聲失敗。原因詳見 [collision_setup.md §0](collision_setup.md#0-先搞懂cc-boxcollider-vs-cc-physicsboxcollider)。
 
 ---
 

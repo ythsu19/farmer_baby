@@ -46,8 +46,11 @@ export default class Player extends cc.Component {
     @property({ displayName: '允許雙跳' })
     enableDoubleJump: boolean = true;
 
-    @property({ displayName: '落地法線 y 門檻', tooltip: '低於此值才算「在地上」（避免側撞被判定成落地）' })
-    groundNormalThreshold: number = -0.5;
+    @property({ displayName: '垂直接觸法線門檻', tooltip: '|normal.y| 大於此值才算垂直接觸（用接觸點位置區分地面 / 天花板）' })
+    groundNormalThreshold: number = 0.5;
+
+    @property({ displayName: 'Debug：畫物理形狀', tooltip: '臨時除錯用，看完關掉' })
+    debugDrawPhysics: boolean = true;
 
     // ── 公開唯讀 API ──────────────────────────────
     get state(): PlayerState { return this._state; }
@@ -64,8 +67,8 @@ export default class Player extends cc.Component {
     private _coyoteTimer = 0;
     private _jumpBufferTimer = 0;
     private _keys: Set<number> = new Set();
-    /** 目前接觸中的 collider → 接觸瞬間的法線 y */
-    private _contacts: Map<cc.PhysicsCollider, number> = new Map();
+    /** 目前接觸中的 collider → 是否為「腳下接觸」（地面） */
+    private _contacts: Map<cc.PhysicsCollider, boolean> = new Map();
     private _isGrounded = false;
     private _wasGrounded = false;
 
@@ -73,6 +76,14 @@ export default class Player extends cc.Component {
     //  SECTION 1：Lifecycle
     // ──────────────────────────────────────────────
     onLoad() {
+        const pm = cc.director.getPhysicsManager();
+        pm.enabled = true;
+        pm.gravity = cc.v2(0, -1800);
+        if (this.debugDrawPhysics) {
+            const D = cc.PhysicsManager.DrawBits;
+            pm.debugDrawFlags = D.e_shapeBit | D.e_aabbBit;
+        }
+
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.fixedRotation = true;
         this._rb.enabledContactListener = true;  // 不開的話 onBeginContact 不會觸發
@@ -131,10 +142,9 @@ export default class Player extends cc.Component {
 
     private _refreshGrounded() {
         this._wasGrounded = this._isGrounded;
-        this._isGrounded = false;
-        for (const ny of this._contacts.values()) {
-            if (ny < this.groundNormalThreshold) { this._isGrounded = true; break; }
-        }
+        let grounded = false;
+        this._contacts.forEach((isGround) => { if (isGround) grounded = true; });
+        this._isGrounded = grounded;
 
         if (!this._wasGrounded && this._isGrounded) {
             this._jumpsUsed = 0;
@@ -178,17 +188,30 @@ export default class Player extends cc.Component {
     }
 
     // ──────────────────────────────────────────────
-    //  Box2d contact callbacks（落地判定用）
-    //  Cocos 慣例：normal 從 selfCollider 指向 otherCollider
-    //  →  normal.y < 0 ⇒ other 在 self 下方 ⇒ self 站在 other 上
+    //  Box2d contact callbacks（落地判定）
+    //  之前只看 normal.y 不夠穩 — A/B 順序會讓正負號翻轉。
+    //  改成「法線夠垂直 + 接觸點在 player 下方」雙重確認。
     // ──────────────────────────────────────────────
     onBeginContact(contact: cc.PhysicsContact, _self: cc.PhysicsCollider, other: cc.PhysicsCollider) {
-        const normal = contact.getWorldManifold().normal;
-        this._contacts.set(other, normal.y);
+        this._contacts.set(other, this._isGroundContact(contact));
     }
 
     onEndContact(_contact: cc.PhysicsContact, _self: cc.PhysicsCollider, other: cc.PhysicsCollider) {
         this._contacts.delete(other);
+    }
+
+    private _isGroundContact(contact: cc.PhysicsContact): boolean {
+        const wm = contact.getWorldManifold();
+        if (Math.abs(wm.normal.y) < this.groundNormalThreshold) return false;  // 側撞牆
+        if (!wm.points || wm.points.length === 0) return false;
+
+        const myWorld = this.node.parent
+            ? this.node.parent.convertToWorldSpaceAR(this.node.position)
+            : cc.v2(this.node.x, this.node.y);
+        let sumY = 0;
+        for (let i = 0; i < wm.points.length; i++) sumY += wm.points[i].y;
+        const avgY = sumY / wm.points.length;
+        return avgY < myWorld.y;  // 接觸點在自己下方 = 地面
     }
 
     // ──────────────────────────────────────────────

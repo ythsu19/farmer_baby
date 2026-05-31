@@ -11,6 +11,72 @@ LIN 的工作流程（仿 Mario）：
 
 ---
 
+## 0. 先搞懂：`cc.BoxCollider` vs `cc.PhysicsBoxCollider`
+
+Cocos Creator 2.4.x 內**兩套不同的碰撞系統**，名字很像但完全不能混用。
+
+| | `cc.BoxCollider` 家族 | `cc.PhysicsBoxCollider` 家族 |
+|---|---|---|
+| 系統 | **碰撞系統** (collision) | **物理系統** (box2d) |
+| 啟用 | `cc.director.getCollisionManager().enabled = true` | `cc.director.getPhysicsManager().enabled = true` |
+| 同節點需要 | 不用其他元件 | 需要 `cc.RigidBody` |
+| 回呼 | `onCollisionEnter / Stay / Exit` | `onBeginContact / PreSolve / PostSolve / EndContact` |
+| 物理效果 | **沒有** — 不會擋、不會反彈 | 真實物理（質量、速度、摩擦、彈性） |
+| 移動 | 自己改 `node.x += vx*dt` | 用 `rigidBody.linearVelocity` 等 |
+| 重力 | 自己寫 | 由 `physicsManager.gravity` 自動 |
+| Debug draw | `(collisionMgr as any).enabledDebugDraw = true` | `physicsManager.debugDrawFlags = ...` |
+| 適合 | 簡單偵測（重疊判定）、回合制、視覺特效觸發 | 平台動作、丟物理球、推箱子、斜坡 |
+
+> ⚠️ **兩套不能混用**。同一個節點不要又掛 `cc.BoxCollider` 又掛 `cc.PhysicsBoxCollider`。
+
+### farmer_baby 用哪套？
+
+→ **`cc.PhysicsBoxCollider` + `cc.RigidBody`（box2d 物理系統）**
+
+理由：
+- 這是 2D 平台動作遊戲，需要真實物理弧線（跳躍）、斜坡反應
+- box2d 對連續碰撞、多接觸點解析比較穩，不會穿透
+- Group Manager 矩陣兩套都能用，但物理系統 box2d 內部會用 categoryBits/maskBits 做高效過濾
+- LIN 的 [Player.ts](../assets/scripts/player/Player.ts) 已經用 `linearVelocity`、`gravityScale`、`onBeginContact`、`fixedRotation` 這些只屬於物理系統的 API
+
+### LIN 之前 Mario 用 `cc.BoxCollider` 可行嗎？
+
+可以，但要自己處理：
+- 自己寫 `vy -= gravity * dt`
+- 自己處理「踩在地上要把 `vy = 0`」這類細節
+- 沒辦法支援推箱子、斜坡
+
+這次選 box2d 是為了少寫一堆物理 boilerplate。
+
+### Debug draw 怎麼開？
+
+物理系統（**現在用的**）：
+
+```ts
+const pm = cc.director.getPhysicsManager();
+pm.debugDrawFlags =
+    cc.PhysicsManager.DrawBits.e_shapeBit |   // 形狀外框
+    cc.PhysicsManager.DrawBits.e_aabbBit;     // 包圍盒
+```
+
+可用 flag（不是全部都存在於 d.ts，缺的編譯會報錯）：
+- `e_shapeBit` — 形狀
+- `e_aabbBit` — AABB 包圍盒
+- `e_jointBit` — 關節
+- `e_pairBit` — 接觸對
+
+碰撞系統（舊的，**farmer_baby 沒用**）：
+
+```ts
+const cm = cc.director.getCollisionManager();
+(cm as any).enabledDebugDraw = true;
+(cm as any).enabledDrawBoxCollider = true;
+```
+
+> `as any` 是因為 .d.ts 沒宣告這兩個屬性，但執行期確實存在。
+
+---
+
 ## 1. Tiled 編輯器內
 
 ### 1-1 開 `assets/map/Tutorial.tmx`
