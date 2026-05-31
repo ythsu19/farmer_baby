@@ -112,7 +112,12 @@ export default class Player extends cc.Component {
     //  SECTION 2：Input — 將來抽 PlayerInput.ts
     // ──────────────────────────────────────────────
     private _onKeyDown(e: cc.Event.EventKeyboard) {
+        // OS auto-repeat 會持續發 KEY_DOWN，這裡只認「真的新按下」的那一次，
+        // 否則跳躍會被連續觸發成雙跳；之後的一次性動作（攻擊、閃避）也共用此擋板。
+        const isRepeat = this._keys.has(e.keyCode);
         this._keys.add(e.keyCode);
+        if (isRepeat) return;
+
         if (this._isJumpKey(e.keyCode)) {
             this._jumpBufferTimer = this.jumpBuffer;
         }
