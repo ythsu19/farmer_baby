@@ -72,7 +72,8 @@ export default class TiledColliderBuilder extends cc.Component {
             }
 
             if (name.indexOf(this.spawnKeyword) >= 0) {
-                const pos = cc.v2(obj.x + obj.width / 2, obj.y + obj.height / 2);
+                // obj.y 是 Cocos 座標系下物件的上緣，往下推 h/2 才是中心；點物件 w=h=0 沒差
+                const pos = cc.v2(obj.x + obj.width / 2, obj.y - obj.height / 2);
                 this._spawnPoints.set(name, pos);
                 summary[name] = (summary[name] || 0) + 1;
                 spawns++;
@@ -89,6 +90,10 @@ export default class TiledColliderBuilder extends cc.Component {
         if (this.debug) {
             cc.log(`[TiledColliderBuilder] "${this.objectLayerName}": 碰撞器×${colliders} + 出生點×${spawns}`, summary);
             cc.log('[TiledColliderBuilder] 出生點清單:', Array.from(this._spawnPoints.keys()));
+            if (objects.length > 0) {
+                const o = objects[0];
+                cc.log(`[TiledColliderBuilder] 第一個物件 "${o.name}" 原始座標：x=${o.x.toFixed(1)} y=${o.y.toFixed(1)} w=${o.width} h=${o.height}`);
+            }
         }
     }
 
@@ -138,9 +143,11 @@ export default class TiledColliderBuilder extends cc.Component {
             node.setPosition(obj.x, obj.y);
             col = c;
         } else {
+            // Cocos `getObjects()` 給的 obj.y 是物件在 Cocos 座標系下的「上緣」（Y-up）。
+            // 節點放在 (obj.x, obj.y) = 物件左上角；collider 中心要往右推 w/2、往下推 h/2。
             const c = node.addComponent(cc.PhysicsBoxCollider);
             c.size = cc.size(obj.width, obj.height);
-            c.offset = cc.v2(obj.width / 2, obj.height / 2);
+            c.offset = cc.v2(obj.width / 2, -obj.height / 2);
             node.setPosition(obj.x, obj.y);
             col = c;
         }
