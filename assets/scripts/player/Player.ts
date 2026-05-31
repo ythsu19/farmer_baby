@@ -1,12 +1,16 @@
-// LIN's Player — box2d 物理版（Phase 2）
+// LIN's Player — box2d 物理版（Phase 3：PlayerInput 已抽出）
 //
 // 詳細設計請看 LIN/player_design.md
 // 設定步驟請看 LIN/collision_setup.md
 //
-// 依賴：節點上必須有 cc.RigidBody（@requireComponent 已保證）+ cc.PhysicsBoxCollider。
+// 依賴：
+//   - 節點上必須有 cc.RigidBody（@requireComponent 已保證）+ cc.PhysicsBoxCollider
+//   - 同節點建議掛 PlayerInput（負責發 input:* event）；若無，Player 不會自己讀鍵盤，
+//     方便之後換成 AI 或觸控 — 只要發相同 event 即可。
+//
 // 世界重力由 cc.director.getPhysicsManager().gravity 統一管，Player 不再自管重力。
 //
-// SECTION 標記為未來抽元件的邊界（PlayerInput、PlayerMovement、PlayerStateMachine）。
+// SECTION 標記為未來抽元件的邊界（PlayerMovement、PlayerStateMachine）。
 
 const { ccclass, property, requireComponent } = cc._decorator;
 
@@ -66,7 +70,6 @@ export default class Player extends cc.Component {
     private _jumpsUsed = 0;
     private _coyoteTimer = 0;
     private _jumpBufferTimer = 0;
-    private _keys: Set<number> = new Set();
     /** 目前接觸中的 collider → 是否為「腳下接觸」（地面） */
     private _contacts: Map<cc.PhysicsCollider, boolean> = new Map();
     private _isGrounded = false;
@@ -88,18 +91,18 @@ export default class Player extends cc.Component {
         this._rb.fixedRotation = true;
         this._rb.enabledContactListener = true;  // 不開的話 onBeginContact 不會觸發
 
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
+        // 訂閱 PlayerInput 在同節點上發的事件。沒掛 PlayerInput 也不會錯，只是不會動。
+        this.node.on('input:move', this._onInputMove, this);
+        this.node.on('input:jump-down', this._onInputJump, this);
     }
 
     onDestroy() {
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
+        this.node.off('input:move', this._onInputMove, this);
+        this.node.off('input:jump-down', this._onInputJump, this);
     }
 
     update(dt: number) {
         this._tickTimers(dt);
-        this._readMoveDir();
         this._refreshGrounded();
         this._applyHorizontalVelocity(dt);
         this._tryConsumeJumpBuffer();   // 先處理跳躍把 v.y 變正
@@ -109,32 +112,15 @@ export default class Player extends cc.Component {
     }
 
     // ──────────────────────────────────────────────
-    //  SECTION 2：Input — 將來抽 PlayerInput.ts
+    //  SECTION 2：Input event handlers
+    //  鍵盤翻譯邏輯已移到 PlayerInput.ts，這裡只接 event。
     // ──────────────────────────────────────────────
-    private _onKeyDown(e: cc.Event.EventKeyboard) {
-        // OS auto-repeat 會持續發 KEY_DOWN，這裡只認「真的新按下」的那一次，
-        // 否則跳躍會被連續觸發成雙跳；之後的一次性動作（攻擊、閃避）也共用此擋板。
-        const isRepeat = this._keys.has(e.keyCode);
-        this._keys.add(e.keyCode);
-        if (isRepeat) return;
-
-        if (this._isJumpKey(e.keyCode)) {
-            this._jumpBufferTimer = this.jumpBuffer;
-        }
+    private _onInputMove(e: { dir: number }) {
+        this._moveDir = e.dir;
     }
 
-    private _onKeyUp(e: cc.Event.EventKeyboard) {
-        this._keys.delete(e.keyCode);
-    }
-
-    private _isJumpKey(k: number): boolean {
-        return k === cc.macro.KEY.space || k === cc.macro.KEY.w || k === cc.macro.KEY.up;
-    }
-
-    private _readMoveDir() {
-        const left = this._keys.has(cc.macro.KEY.a) || this._keys.has(cc.macro.KEY.left);
-        const right = this._keys.has(cc.macro.KEY.d) || this._keys.has(cc.macro.KEY.right);
-        this._moveDir = right ? 1 : left ? -1 : 0;
+    private _onInputJump() {
+        this._jumpBufferTimer = this.jumpBuffer;
     }
 
     // ──────────────────────────────────────────────

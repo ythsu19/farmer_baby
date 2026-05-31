@@ -53,8 +53,8 @@
 
 > 目標：把 Player.ts 變薄；輸入和動畫獨立元件。
 
-- [ ] **3-1** 新建 `PlayerInput.ts`：監聽鍵盤，發 `input:move`、`input:jump-down`、`input:attack` event
-- [ ] **3-2** Player.ts SECTION 2 改成接 event
+- [x] **3-1** 新建 `PlayerInput.ts`：監聽鍵盤，發 `input:move`、`input:jump-down` event（`input:attack` 等 Phase 4 再加）
+- [x] **3-2** Player.ts SECTION 2 改成接 event
 - [ ] **3-3** 新建 `PlayerAnimator.ts`：監聽 `state-changed` 切 `cc.Animation` clip
 - [ ] **3-4** 處理面向翻轉（聽 `facing-changed`）
 - [ ] **3-5** 等動畫素材就位後接上實際 clip
@@ -120,3 +120,4 @@
 - `2026-05-29` Phase 2：寫 `TiledColliderBuilder.ts`（Tiled 物件層 → box2d 碰撞器）；`Player.ts` 切換到 box2d 物理（linearVelocity + onBeginContact + gravityScale）；寫 `collision_setup.md` 設定備忘
 - `2026-05-29` 重構：`TiledColliderBuilder` 改用多物件層 LayerSpec 架構（ground/floor/wall 各一層）；新增 `cocos_workflow.md` LIN 個人的 Cocos 工作流程規定 + 標準步驟 + 動態 TODO 清單
 - `2026-05-29` 重新設計：改成 Mario 模式 — 單一 `objects` 物件層 + 物件 name 直接對應 Cocos node.group + Group Manager 矩陣處理碰撞；移除 LayerSpec / Tag 慣例；docs 全面更新
+- `2026-06-01` Phase 3 第一步：抽出 `PlayerInput.ts`（鍵盤 → event），Player.ts SECTION 2 改成接 event；輸入和行為解耦，之後換觸控 / 手把 / AI 都不用動 Player.ts

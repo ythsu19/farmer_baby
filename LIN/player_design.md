@@ -22,12 +22,12 @@
 
 ```
 assets/scripts/player/
-├── Player.ts          ← 主元件。目前先全部塞這，已用 SECTION 標好邊界
-├── PlayerInput.ts     ← Phase 抽出：鍵盤 / 觸控 → 發 input event
-├── PlayerMovement.ts  ← Phase 抽出：移動 + 跳躍物理 + 落地判定
+├── Player.ts          ← 主元件 + 組裝者；剩下移動 / 物理 / 狀態機
+├── PlayerInput.ts     ← ✅ Phase 3：鍵盤 → 發 input:move / input:jump-down event
+├── PlayerMovement.ts  ← 之後抽：移動 + 跳躍物理 + 落地判定
 ├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡
 ├── PlayerCombat.ts    ← 攻擊 / 射擊 / 子彈池
-├── PlayerAnimator.ts  ← 訂閱 state event → 切 cc.Animation clip
+├── PlayerAnimator.ts  ← Phase 3：訂閱 state-changed / facing-changed → 切 cc.Animation clip
 └── types.ts           ← 共用 enum / interface
 ```
 
