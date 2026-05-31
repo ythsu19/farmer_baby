@@ -34,8 +34,8 @@ export default class Player extends cc.Component {
     @property({ displayName: '跳躍初速 (px/s)' })
     jumpVelocity: number = 620;
 
-    @property({ displayName: '下落重力倍率（手感）' })
-    fallGravityMul: number = 1.6;
+    @property({ displayName: '下落重力倍率（手感）', tooltip: '1=上升下降對稱；>1 下落較快；<1 下落較慢/飄' })
+    fallGravityMul: number = 1.1;
 
     @property({ displayName: '土狼時間 (s) — 離地後仍可跳' })
     coyoteTime: number = 0.1;
@@ -102,8 +102,8 @@ export default class Player extends cc.Component {
         this._readMoveDir();
         this._refreshGrounded();
         this._applyHorizontalVelocity(dt);
-        this._adjustFallGravity();
-        this._tryConsumeJumpBuffer();
+        this._tryConsumeJumpBuffer();   // 先處理跳躍把 v.y 變正
+        this._adjustFallGravity();      // 再依新 v.y 決定 gravityScale，跳起來那一幀就不會被舊的下落重力刮
         this._updateFacing();
         this._refreshState();
     }

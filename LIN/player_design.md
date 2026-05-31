@@ -95,7 +95,7 @@ assets/scripts/player/
 | `jumpBuffer` | 0.1s | 落地前按跳，落地瞬間自動執行 — 玩家不會懊惱「我明明有按」 |
 | `acceleration` | 1800 px/s² | 走起來不會瞬間滿速，但 ~0.13s 達速，反應夠快 |
 | `deceleration` | 1400 px/s² | 比加速度小一點，鬆開後有滑行感 |
-| `fallGravityMul` | 1.6× | 下落比上升快 — 經典「太空狗」式跳躍弧線 |
+| `fallGravityMul` | 1.1× | 下落略快於上升，但保留空中操控時間給二段跳；1.0 = 完全對稱拋物線；2026-06-01 由 1.6 調降 |
 
 數值來源：Celeste、Hollow Knight、Super Mario 等平台動作的常見配置範圍。實際看遊戲調。
 
