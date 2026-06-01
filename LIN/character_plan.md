@@ -63,16 +63,33 @@
 
 ---
 
-## Phase 4：PlayerHealth + PlayerCombat
+## Phase 4：PlayerCombat + PlayerHealth
 
-> 目標：補上 HP 系統與攻擊/射擊。
+> 目標：補上射擊系統與 HP 系統。
+> 順序：Combat 先（4-A）、Health 後（4-B）— LIN 的角色設計是「拿槍射擊」，視覺即時性優先。
 
-- [ ] **4-1** `PlayerHealth.ts`：maxHp / 受傷 / 無敵時間 / 死亡 event
-- [ ] **4-2** `PlayerCombat.ts`：攻擊判定（近戰 hitbox 或 射擊 + 子彈池）
-- [ ] **4-3** 在 Tutorial 加靶子驗證攻擊判定
-- [ ] **4-4** 在 Tutorial 加陷阱驗證受傷流程
+### 4-A 射擊系統（Combat + 武器 + 子彈）
 
-**🛑 Commit point 4**：`feat(player): HP + Combat 系統`
+- [x] **4-A-1** `PlayerInput.ts` 加 `input:attack-down` / `input:attack-up`（按鍵 J）
+- [x] **4-A-2** `Bullet.ts`（box2d sensor 版，放 `assets/scripts/player/`，不是 `characters/`）
+- [x] **4-A-3** `PlayerCombat.ts`：訂閱 attack event、cooldown 控射速、NodePool、按住連射
+- [ ] **4-A-4** Cocos：做新 `Bullet.prefab`（拉子彈圖 + RigidBody Kinematic + PhysicsBoxCollider Sensor + Bullet.ts + group=bullet）
+- [ ] **4-A-5** Cocos：Player 節點下加 `Weapon` 子節點（cc.Sprite 拉武器圖），再下加 `Muzzle` 空節點
+- [ ] **4-A-6** Cocos：Player 節點 Add `PlayerCombat.ts`，Inspector 拉 bulletPrefab 跟 muzzle
+- [ ] **4-A-7** Cocos：Group Manager 加 `bullet` group，矩陣：bullet ↔ enemy / ground / floor / wall / slope 勾，其他不勾
+- [ ] **4-A-8** Tutorial 場景拉一個靶子節點（Group=enemy、PhysicsBoxCollider、掛簡單測試元件實作 `takeDamage`）測試射擊
+- [ ] **4-A-9** 微調 fireCooldown / bullet speed / damage 找手感
+
+**🛑 Commit point 4-A**：`feat(player): PlayerCombat + Bullet 射擊系統`
+
+### 4-B HP 系統
+
+- [ ] **4-B-1** `PlayerHealth.ts`：maxHp / 受傷 / 無敵時間 / 死亡 event
+- [ ] **4-B-2** 提供 `takeDamage(damage, attacker?)` 介面（敵人子彈 / 接觸傷害呼叫）
+- [ ] **4-B-3** 在 Tutorial 加陷阱（spike）/ 簡單敵人驗證受傷流程
+- [ ] **4-B-4** HUD：HP bar prefab（之後也可放 Phase 5 做）
+
+**🛑 Commit point 4-B**：`feat(player): PlayerHealth + 受傷流程`
 
 ---
 
@@ -123,3 +140,4 @@
 - `2026-06-01` Phase 3 第一步：抽出 `PlayerInput.ts`（鍵盤 → event），Player.ts SECTION 2 改成接 event；輸入和行為解耦，之後換觸控 / 手把 / AI 都不用動 Player.ts
 - `2026-06-01` Phase 3 第二步：新建 `PlayerAnimator.ts`，訂閱 `state-changed` 切 clip、訂閱 `facing-changed` 翻 scaleX；Player.ts 不再碰 node.scaleX，純剩物理與狀態；clip 名稱 @property 化，動畫素材未就位也不會錯
 - `2026-06-01` PlayerAnimator 改為**逐幀貼圖**版（frame array + FPS），不用 cc.Animation 編輯器；Inspector 直接拉 SpriteFrame 進每狀態陣列、設 FPS；JUMP/FALL 可設「停最後一張」避免循環觀感
+- `2026-06-01` Phase 4-A：新建 `Bullet.ts`（box2d sensor 版，跟舊 `characters/Bullet.ts` 區隔）+ `PlayerCombat.ts`（NodePool + 按住連射 + 從 Player.facingRight 取方向）；`PlayerInput.ts` 加 `input:attack-down/up`（J 鍵）；武器跟子彈分別用獨立素材：武器 = Player 子節點 cc.Sprite、子彈 = 獨立 prefab（待 Cocos 編輯器內製作）

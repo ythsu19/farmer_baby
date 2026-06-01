@@ -23,13 +23,16 @@
 ```
 assets/scripts/player/
 ├── Player.ts          ← 主元件 + 組裝者；剩下移動 / 物理 / 狀態機
-├── PlayerInput.ts     ← ✅ Phase 3：鍵盤 → 發 input:move / input:jump-down event
+├── PlayerInput.ts     ← ✅ Phase 3：鍵盤 → 發 input:move / input:jump-down / input:attack-down/up
 ├── PlayerMovement.ts  ← 之後抽：移動 + 跳躍物理 + 落地判定
-├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡
-├── PlayerCombat.ts    ← 攻擊 / 射擊 / 子彈池
+├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡（Phase 4-B）
+├── PlayerCombat.ts    ← ✅ Phase 4-A：訂閱 input:attack → 從槍口 spawn 子彈（NodePool 池化）
+├── Bullet.ts          ← ✅ Phase 4-A：box2d sensor 子彈（speed / damage / lifetime + onBeginContact）
 ├── PlayerAnimator.ts  ← ✅ Phase 3：訂閱 state-changed / facing-changed → 逐幀切 spriteFrame + 翻 scaleX
 └── types.ts           ← 共用 enum / interface
 ```
+
+> 舊的 `assets/scripts/characters/Bullet.ts` + `PlayerShooter.ts` 用 `cc.Collider`（碰撞系統），跟 box2d 不相容；新場景一律用 `assets/scripts/player/` 下的新版。
 
 職責邊界很嚴格：
 - **PlayerInput** 不知道角色會做什麼，只說「使用者按了什麼」
@@ -49,11 +52,13 @@ assets/scripts/player/
 |------|--------|------|------|
 | `input:move` | PlayerInput | `{ dir: -1\|0\|1 }` | 水平移動意圖 |
 | `input:jump-down` | PlayerInput | — | 跳躍按下（進緩衝） |
-| `input:attack` | PlayerInput | — | 攻擊意圖 |
+| `input:attack-down` | PlayerInput | — | 攻擊鍵按下瞬間 |
+| `input:attack-up` | PlayerInput | — | 攻擊鍵放開瞬間（PlayerCombat 用來停連射） |
 | `state-changed` | Player | `{ from, to }` | 動作狀態切換 |
 | `jumped` | Player | `{ fromCoyote, double }` | 跳起來的瞬間（給音效） |
 | `landed` | Player | — | 落地瞬間（給音效 + 灰塵特效） |
 | `facing-changed` | Player | `right: boolean` | 面向翻轉 |
+| `shot` | PlayerCombat | `{ dir: -1\|1 }` | 每發子彈瞬間（音效 / 後座力 / 鏡頭抖） |
 | `hp-changed` | PlayerHealth | `{ hp, maxHp, delta }` | HUD 用 |
 | `hurt` | PlayerHealth | `{ damage, from }` | 受傷瞬間 |
 | `died` | PlayerHealth | — | 死亡（結算用） |
@@ -120,6 +125,32 @@ assets/scripts/player/
 
 ---
 
+## 武器 / 子彈架構（Phase 4-A）
+
+```
+Player 節點 (group: player)
+├─ Player.ts / PlayerInput.ts / PlayerAnimator.ts / PlayerCombat.ts
+├─ Sprite (player 本體圖，或交給 PlayerAnimator 切影格)
+└─ Weapon 子節點 (純視覺，掛 cc.Sprite 用武器圖)
+   └─ Muzzle 子節點 (空節點，標記槍口位置)
+                ↑ PlayerCombat 的 muzzle 拉這個
+
+Bullet.prefab (group: bullet)
+├─ cc.Sprite                    ← 子彈圖
+├─ cc.RigidBody                 ← Kinematic, Fixed Rotation, gravityScale=0, contactListener=on
+├─ cc.PhysicsBoxCollider        ← Is Sensor, size 配子彈圖
+└─ Bullet.ts                    ← speed / damage / lifetime
+```
+
+設計取捨：
+- **武器當 Player 子節點而非獨立 prefab**：90% 的平台動作只有「角色拿一把槍朝面向方向射」，做太複雜浪費；之後要做換武器再抽成 `Weapon.ts` 即可。
+- **子彈 spawn 後 parent = Player.node.parent（兄弟層級）**：避免子彈跟 Player 翻 scaleX 時連帶被翻，導致速度方向錯誤。
+- **方向用 Player.facingRight 而不是 input dir**：射擊跟「角色面向」綁，玩家放開方向鍵也能保持原方向射；靜止瞄前方而不是亂飛。
+- **連射靠 PlayerCombat 自己 tick**：PlayerInput 只發 attack-down/up 兩個 edge event，PlayerCombat 自己存 `_attackHeld` 在 update 裡判 cooldown。比靠 OS auto-repeat 穩定。
+- **傷害是「鴨子型別」**：Bullet 不認識 enemy 類別，只要對方有 `takeDamage(damage, attacker?)` 就掉血。Monster / EnemyBase / PlayerHealth 都可實作，未來新敵人實作這個介面就接入。
+
+---
+
 ## 對外公開 API
 
 ```typescript
@@ -149,8 +180,8 @@ class Player {
 
 1. ~~單檔 Player.ts，已分 SECTION，可直接執行~~ ✅
 2. ~~Phase 2：升級物理（box2d + Tiled）~~ ✅
-3. **Phase 3**：抽 PlayerInput、PlayerAnimator
-4. **Phase 4**：加 PlayerHealth、PlayerCombat
+3. ~~Phase 3：抽 PlayerInput、PlayerAnimator~~ ✅
+4. **Phase 4**：PlayerCombat + Bullet（4-A ✅）、PlayerHealth（4-B 待做）
 5. **Phase 5**：可選 — 拆 PlayerStateMachine 出來
 
 每個 Phase 都要保持 Tutorial 場景可玩。

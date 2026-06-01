@@ -4,8 +4,10 @@
 // 之後改觸控 / 手把 / AI 控制，做出一個發相同事件的元件來換掉即可，Player.ts 完全不用動。
 //
 // 事件（發在 this.node 上）：
-//   input:move      { dir: -1|0|1 }  — 水平方向意圖改變時觸發（edge-driven）
-//   input:jump-down                  — 按下跳鍵那一瞬間（已濾掉 OS auto-repeat）
+//   input:move          { dir: -1|0|1 }  — 水平方向意圖改變時觸發（edge-driven）
+//   input:jump-down                      — 按下跳鍵那一瞬間（已濾掉 OS auto-repeat）
+//   input:attack-down                    — 按下攻擊鍵那一瞬間
+//   input:attack-up                      — 放開攻擊鍵那一瞬間（PlayerCombat 用來判斷「按住連射」）
 //
 // 詳細設計請看 LIN/player_design.md「事件詞彙」。
 
@@ -37,11 +39,18 @@ export default class PlayerInput extends cc.Component {
         if (this._isJumpKey(e.keyCode)) {
             this.node.emit('input:jump-down');
         }
+        if (this._isAttackKey(e.keyCode)) {
+            this.node.emit('input:attack-down');
+        }
         this._refreshDir();
     }
 
     private _onKeyUp(e: cc.Event.EventKeyboard) {
+        const wasHeld = this._keys.has(e.keyCode);
         this._keys.delete(e.keyCode);
+        if (wasHeld && this._isAttackKey(e.keyCode)) {
+            this.node.emit('input:attack-up');
+        }
         this._refreshDir();
     }
 
@@ -56,5 +65,9 @@ export default class PlayerInput extends cc.Component {
 
     private _isJumpKey(k: number): boolean {
         return k === cc.macro.KEY.space || k === cc.macro.KEY.w || k === cc.macro.KEY.up;
+    }
+
+    private _isAttackKey(k: number): boolean {
+        return k === cc.macro.KEY.j;
     }
 }
