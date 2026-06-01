@@ -12,7 +12,9 @@
 //   - 節點 Group 設為 `bullet`（在 Project Settings → Group Manager 加入）
 //
 // 設計：
-//   - 由 PlayerCombat.spawn 後呼叫 init(dir, pool) 設方向 + 速度 + 記錄回收用的 pool
+//   - 由 PlayerCombat.spawn 後呼叫 init(dirVec, pool) 設方向向量 + 記錄回收用的 pool
+//   - 任意方向（不限左右）→ 子彈可以朝滑鼠瞄準的方向射出
+//   - 子彈節點會 rotate 對齊飛行方向（node.angle = atan2 deg）
 //   - lifetime 到了自動回收（避免飛到場景外無限存在）
 //   - 撞到非 player / 非 bullet 的東西 → 試著對對方呼叫 takeDamage(damage, attacker)，然後回收
 //   - 找不到 takeDamage → 撞到牆/地形 → 直接回收
@@ -47,18 +49,28 @@ export default class Bullet extends cc.Component {
         this._rb.enabledContactListener = true;
     }
 
-    /** PlayerCombat 從池取出 / 新建後立刻呼叫；外面已把 node.parent / position 設好 */
-    init(dir: number, pool: cc.NodePool) {
+    /**
+     * PlayerCombat 從池取出 / 新建後立刻呼叫；外面已把 node.parent / position 設好。
+     * dirVec：飛行方向（不需要先 normalize，這裡會自己做）
+     */
+    init(dirVec: cc.Vec2, pool: cc.NodePool) {
         this._pool = pool;
         this._timer = 0;
         this._dead = false;
 
-        // 視覺翻面（子彈圖朝右畫的）
-        const abs = Math.abs(this.node.scaleX) || 1;
-        this.node.scaleX = abs * (dir >= 0 ? 1 : -1);
+        // 正規化方向
+        let dx = dirVec.x;
+        let dy = dirVec.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0.0001) { dx /= len; dy /= len; }
+        else { dx = 1; dy = 0; }  // 防呆：零向量 → 朝右
+
+        // 視覺：旋轉子彈讓圖朝飛行方向（子彈素材預設朝右畫，旋轉是逆時針正）
+        this.node.angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        // scaleX 留給 prefab 設計時用，不在這裡動
 
         // box2d 速度
-        this._rb.linearVelocity = cc.v2(this.speed * (dir >= 0 ? 1 : -1), 0);
+        this._rb.linearVelocity = cc.v2(dx * this.speed, dy * this.speed);
     }
 
     update(dt: number) {

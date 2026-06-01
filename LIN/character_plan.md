@@ -68,17 +68,21 @@
 > 目標：補上射擊系統與 HP 系統。
 > 順序：Combat 先（4-A）、Health 後（4-B）— LIN 的角色設計是「拿槍射擊」，視覺即時性優先。
 
-### 4-A 射擊系統（Combat + 武器 + 子彈）
+### 4-A 射擊系統（Combat + 武器 + 子彈，滑鼠瞄準版）
 
-- [x] **4-A-1** `PlayerInput.ts` 加 `input:attack-down` / `input:attack-up`（按鍵 J）
-- [x] **4-A-2** `Bullet.ts`（box2d sensor 版，放 `assets/scripts/player/`，不是 `characters/`）
-- [x] **4-A-3** `PlayerCombat.ts`：訂閱 attack event、cooldown 控射速、NodePool、按住連射
-- [ ] **4-A-4** Cocos：做新 `Bullet.prefab`（拉子彈圖 + RigidBody Kinematic + PhysicsBoxCollider Sensor + Bullet.ts + group=bullet）
-- [ ] **4-A-5** Cocos：Player 節點下加 `Weapon` 子節點（cc.Sprite 拉武器圖），再下加 `Muzzle` 空節點
-- [ ] **4-A-6** Cocos：Player 節點 Add `PlayerCombat.ts`，Inspector 拉 bulletPrefab 跟 muzzle
-- [ ] **4-A-7** Cocos：Group Manager 加 `bullet` group，矩陣：bullet ↔ enemy / ground / floor / wall / slope 勾，其他不勾
-- [ ] **4-A-8** Tutorial 場景拉一個靶子節點（Group=enemy、PhysicsBoxCollider、掛簡單測試元件實作 `takeDamage`）測試射擊
-- [ ] **4-A-9** 微調 fireCooldown / bullet speed / damage 找手感
+- [x] **4-A-1** `PlayerInput.ts` 加滑鼠：左鍵 → `input:attack-down/up`、滑鼠移動 → 內部記 aim、`aimWorldPos()` 公開方法（Camera 換算）
+- [x] **4-A-2** `Bullet.ts`：box2d sensor 子彈、`init(dirVec, pool)` 收任意方向、視覺隨方向旋轉
+- [x] **4-A-3** `PlayerCombat.ts`：每發子彈方向 = normalize(滑鼠世界座標 − 槍口世界座標)、cooldown 控射速、NodePool、按住連射
+- [x] **4-A-4** `WeaponAim.ts`：每幀讀滑鼠世界座標、旋轉武器節點、滑鼠在左翻 scaleY、emit facing-changed（含死區）
+- [x] **4-A-5** `Player.ts` 改面向：移除速度判定，改為被動接 facing-changed 同步 `_facingRight` 給 getter
+- [ ] **4-A-6** Cocos：做新 `Bullet.prefab`（拉子彈圖、子彈素材畫朝右 + RigidBody Kinematic + PhysicsBoxCollider Sensor + Bullet.ts + group=bullet）
+- [ ] **4-A-7** Cocos：Player 節點下加 `Weapon` 子節點（cc.Sprite 拉武器圖，位置設在胸口/手前方），再下加 `Muzzle` 空節點（位置設在槍口前端）
+- [ ] **4-A-8** Cocos：Player 節點 Add `PlayerCombat.ts`，Inspector 拉 `bulletPrefab` 跟 `muzzle`
+- [ ] **4-A-9** Cocos：Player 節點 Add `WeaponAim.ts`，Inspector 拉 `weaponNode`（Weapon 子節點）
+- [ ] **4-A-10** Cocos：Group Manager 加 `bullet` group，矩陣：bullet ↔ enemy / ground / floor / wall / slope 勾，其他不勾
+- [ ] **4-A-11** Tutorial 場景拉一個靶子節點（Group=enemy、PhysicsBoxCollider、掛簡單測試元件實作 `takeDamage`）測試射擊
+- [ ] **4-A-12** Play 測試：滑鼠移動 → 武器跟著轉；按住左鍵 → 連射往滑鼠方向；走著射 → 一邊移動一邊瞄；遮蔽角度時面向跟著翻
+- [ ] **4-A-13** 微調 fireCooldown / bullet speed / damage / facingDeadzone
 
 **🛑 Commit point 4-A**：`feat(player): PlayerCombat + Bullet 射擊系統`
 
@@ -140,4 +144,5 @@
 - `2026-06-01` Phase 3 第一步：抽出 `PlayerInput.ts`（鍵盤 → event），Player.ts SECTION 2 改成接 event；輸入和行為解耦，之後換觸控 / 手把 / AI 都不用動 Player.ts
 - `2026-06-01` Phase 3 第二步：新建 `PlayerAnimator.ts`，訂閱 `state-changed` 切 clip、訂閱 `facing-changed` 翻 scaleX；Player.ts 不再碰 node.scaleX，純剩物理與狀態；clip 名稱 @property 化，動畫素材未就位也不會錯
 - `2026-06-01` PlayerAnimator 改為**逐幀貼圖**版（frame array + FPS），不用 cc.Animation 編輯器；Inspector 直接拉 SpriteFrame 進每狀態陣列、設 FPS；JUMP/FALL 可設「停最後一張」避免循環觀感
-- `2026-06-01` Phase 4-A：新建 `Bullet.ts`（box2d sensor 版，跟舊 `characters/Bullet.ts` 區隔）+ `PlayerCombat.ts`（NodePool + 按住連射 + 從 Player.facingRight 取方向）；`PlayerInput.ts` 加 `input:attack-down/up`（J 鍵）；武器跟子彈分別用獨立素材：武器 = Player 子節點 cc.Sprite、子彈 = 獨立 prefab（待 Cocos 編輯器內製作）
+- `2026-06-01` Phase 4-A：新建 `Bullet.ts`（box2d sensor 版，跟舊 `characters/Bullet.ts` 區隔）+ `PlayerCombat.ts`（NodePool + 按住連射）；`PlayerInput.ts` 加攻擊事件
+- `2026-06-01` Phase 4-A 改寫成「滑鼠瞄準射擊」：射擊鍵改滑鼠左鍵（按住連射）、武器跟著滑鼠轉向（新 `WeaponAim.ts`，滑鼠在左翻 scaleY 讓槍管朝外）、子彈方向 = normalize(滑鼠 − 槍口)、`Bullet.init` 改收 `Vec2` 並隨方向旋轉視覺、Player 面向改由 WeaponAim 決定（依滑鼠 x 相對武器中心，含 8px 死區），Player.ts 移除速度判面向邏輯

@@ -94,11 +94,14 @@ export default class Player extends cc.Component {
         // 訂閱 PlayerInput 在同節點上發的事件。沒掛 PlayerInput 也不會錯，只是不會動。
         this.node.on('input:move', this._onInputMove, this);
         this.node.on('input:jump-down', this._onInputJump, this);
+        // 面向由 WeaponAim 決定（跟著滑鼠），Player 只是被動接收同步內部狀態
+        this.node.on('facing-changed', this._onFacingChanged, this);
     }
 
     onDestroy() {
         this.node.off('input:move', this._onInputMove, this);
         this.node.off('input:jump-down', this._onInputJump, this);
+        this.node.off('facing-changed', this._onFacingChanged, this);
     }
 
     update(dt: number) {
@@ -107,7 +110,6 @@ export default class Player extends cc.Component {
         this._applyHorizontalVelocity(dt);
         this._tryConsumeJumpBuffer();   // 先處理跳躍把 v.y 變正
         this._adjustFallGravity();      // 再依新 v.y 決定 gravityScale，跳起來那一幀就不會被舊的下落重力刮
-        this._updateFacing();
         this._refreshState();
     }
 
@@ -121,6 +123,11 @@ export default class Player extends cc.Component {
 
     private _onInputJump() {
         this._jumpBufferTimer = this.jumpBuffer;
+    }
+
+    /** WeaponAim 依滑鼠位置決定面向；Player 同步內部狀態，讓 facingRight getter 仍可用 */
+    private _onFacingChanged(faceRight: boolean) {
+        this._facingRight = faceRight;
     }
 
     // ──────────────────────────────────────────────
@@ -207,16 +214,9 @@ export default class Player extends cc.Component {
 
     // ──────────────────────────────────────────────
     //  SECTION 4：Facing
-    //  Player 只決定面向（依速度），實際視覺翻面由 PlayerAnimator 接 facing-changed event 處理。
+    //  改用滑鼠瞄準後，面向由 WeaponAim 決定並 emit 'facing-changed'。
+    //  Player.ts 不再用速度判面向，只在 _onFacingChanged 同步內部狀態給 facingRight getter。
     // ──────────────────────────────────────────────
-    private _updateFacing() {
-        const vx = this._rb.linearVelocity.x;
-        if (Math.abs(vx) < 5) return;
-        const shouldFaceRight = vx > 0;
-        if (shouldFaceRight === this._facingRight) return;
-        this._facingRight = shouldFaceRight;
-        this.node.emit('facing-changed', shouldFaceRight);
-    }
 
     // ──────────────────────────────────────────────
     //  SECTION 5：State machine — 將來可抽 PlayerStateMachine.ts

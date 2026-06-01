@@ -22,12 +22,13 @@
 
 ```
 assets/scripts/player/
-├── Player.ts          ← 主元件 + 組裝者；剩下移動 / 物理 / 狀態機
-├── PlayerInput.ts     ← ✅ Phase 3：鍵盤 → 發 input:move / input:jump-down / input:attack-down/up
+├── Player.ts          ← 主元件；移動 / 物理 / 狀態機；面向被動接 facing-changed 同步
+├── PlayerInput.ts     ← ✅ Phase 3 + 4-A：鍵盤 (移動/跳) + 滑鼠 (左鍵 fire / 滑鼠位置 aim)
 ├── PlayerMovement.ts  ← 之後抽：移動 + 跳躍物理 + 落地判定
 ├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡（Phase 4-B）
-├── PlayerCombat.ts    ← ✅ Phase 4-A：訂閱 input:attack → 從槍口 spawn 子彈（NodePool 池化）
-├── Bullet.ts          ← ✅ Phase 4-A：box2d sensor 子彈（speed / damage / lifetime + onBeginContact）
+├── PlayerCombat.ts    ← ✅ Phase 4-A：滑鼠左鍵按住 → 朝滑鼠方向 spawn 子彈（NodePool 池化）
+├── WeaponAim.ts       ← ✅ Phase 4-A：每幀讀滑鼠世界座標 → 旋轉武器、上下翻、決定 Player 面向
+├── Bullet.ts          ← ✅ Phase 4-A：box2d sensor 子彈（任意方向向量、視覺隨方向旋轉）
 ├── PlayerAnimator.ts  ← ✅ Phase 3：訂閱 state-changed / facing-changed → 逐幀切 spriteFrame + 翻 scaleX
 └── types.ts           ← 共用 enum / interface
 ```
@@ -52,13 +53,13 @@ assets/scripts/player/
 |------|--------|------|------|
 | `input:move` | PlayerInput | `{ dir: -1\|0\|1 }` | 水平移動意圖 |
 | `input:jump-down` | PlayerInput | — | 跳躍按下（進緩衝） |
-| `input:attack-down` | PlayerInput | — | 攻擊鍵按下瞬間 |
-| `input:attack-up` | PlayerInput | — | 攻擊鍵放開瞬間（PlayerCombat 用來停連射） |
+| `input:attack-down` | PlayerInput | — | 滑鼠左鍵按下瞬間 |
+| `input:attack-up` | PlayerInput | — | 滑鼠左鍵放開瞬間（PlayerCombat 用來停連射） |
 | `state-changed` | Player | `{ from, to }` | 動作狀態切換 |
 | `jumped` | Player | `{ fromCoyote, double }` | 跳起來的瞬間（給音效） |
 | `landed` | Player | — | 落地瞬間（給音效 + 灰塵特效） |
-| `facing-changed` | Player | `right: boolean` | 面向翻轉 |
-| `shot` | PlayerCombat | `{ dir: -1\|1 }` | 每發子彈瞬間（音效 / 後座力 / 鏡頭抖） |
+| `facing-changed` | WeaponAim | `right: boolean` | 面向翻轉（用滑鼠 x 相對武器中心判斷） |
+| `shot` | PlayerCombat | `{ dir: cc.Vec2 }` | 每發子彈瞬間（音效 / 後座力 / 鏡頭抖） |
 | `hp-changed` | PlayerHealth | `{ hp, maxHp, delta }` | HUD 用 |
 | `hurt` | PlayerHealth | `{ damage, from }` | 受傷瞬間 |
 | `died` | PlayerHealth | — | 死亡（結算用） |
@@ -125,29 +126,44 @@ assets/scripts/player/
 
 ---
 
-## 武器 / 子彈架構（Phase 4-A）
+## 武器 / 子彈架構（Phase 4-A：滑鼠瞄準版）
 
 ```
 Player 節點 (group: player)
-├─ Player.ts / PlayerInput.ts / PlayerAnimator.ts / PlayerCombat.ts
+├─ Player.ts / PlayerInput.ts / PlayerAnimator.ts / PlayerCombat.ts / WeaponAim.ts
 ├─ Sprite (player 本體圖，或交給 PlayerAnimator 切影格)
 └─ Weapon 子節點 (純視覺，掛 cc.Sprite 用武器圖)
+   ↑ 位置固定在角色胸口/手前方；WeaponAim 每幀旋轉這個節點朝滑鼠
+   ↑ 滑鼠在左 → WeaponAim 把 scaleY 翻負，槍管朝外不朝下
    └─ Muzzle 子節點 (空節點，標記槍口位置)
-                ↑ PlayerCombat 的 muzzle 拉這個
+                ↑ PlayerCombat 的 muzzle 拉這個；武器轉動時 muzzle 跟著轉到槍口前端
 
 Bullet.prefab (group: bullet)
-├─ cc.Sprite                    ← 子彈圖
+├─ cc.Sprite                    ← 子彈圖（畫朝右）
 ├─ cc.RigidBody                 ← Kinematic, Fixed Rotation, gravityScale=0, contactListener=on
 ├─ cc.PhysicsBoxCollider        ← Is Sensor, size 配子彈圖
-└─ Bullet.ts                    ← speed / damage / lifetime
+└─ Bullet.ts                    ← speed / damage / lifetime（init 收任意方向 Vec2）
 ```
 
+控制：
+- 移動：A / D 或 ← / →
+- 跳躍：Space / W / ↑
+- 射擊：滑鼠左鍵（按住連射）
+- 瞄準：滑鼠位置
+
 設計取捨：
-- **武器當 Player 子節點而非獨立 prefab**：90% 的平台動作只有「角色拿一把槍朝面向方向射」，做太複雜浪費；之後要做換武器再抽成 `Weapon.ts` 即可。
-- **子彈 spawn 後 parent = Player.node.parent（兄弟層級）**：避免子彈跟 Player 翻 scaleX 時連帶被翻，導致速度方向錯誤。
-- **方向用 Player.facingRight 而不是 input dir**：射擊跟「角色面向」綁，玩家放開方向鍵也能保持原方向射；靜止瞄前方而不是亂飛。
-- **連射靠 PlayerCombat 自己 tick**：PlayerInput 只發 attack-down/up 兩個 edge event，PlayerCombat 自己存 `_attackHeld` 在 update 裡判 cooldown。比靠 OS auto-repeat 穩定。
-- **傷害是「鴨子型別」**：Bullet 不認識 enemy 類別，只要對方有 `takeDamage(damage, attacker?)` 就掉血。Monster / EnemyBase / PlayerHealth 都可實作，未來新敵人實作這個介面就接入。
+- **武器當 Player 子節點而非獨立 prefab**：相對 Player 的座標固定（胸口/手前），跟著 Player 移動。日後要換武器再抽 `Weapon.ts` 處理素材切換即可。
+- **WeaponAim 在 update 每幀算角度**：鏡頭跟隨時玩家移動 → 滑鼠世界座標變 → 武器要重算。比用事件穩定。
+- **子彈方向 = normalize(滑鼠世界座標 − 槍口世界座標)**：玩家直接瞄哪打哪；不用 Player.facingRight 當方向。
+- **子彈 spawn 後 parent = Player.node.parent**：避免子彈跟 Player / Weapon 的 scale / rotation 連動。
+- **連射靠 PlayerCombat tick + cooldown**：滑鼠 down/up 只發 edge event，PlayerCombat 自己存 `_attackHeld` 在 update 裡決定射速。
+- **面向死區**：WeaponAim 用 `facingDeadzone`（預設 8px）避免滑鼠在角色中線附近抖動時面向反覆翻。
+- **武器上下翻而非角色翻**：滑鼠在左半邊 → 武器 scaleY=-1（槍管朝外）；玩家 sprite 翻 scaleX 由 PlayerAnimator 自己處理。
+- **傷害是「鴨子型別」**：Bullet 不認識 enemy 類別，只要對方有 `takeDamage(damage, attacker?)` 就掉血。Monster / EnemyBase / PlayerHealth 都可實作。
+
+座標細節：
+- `PlayerInput.aimWorldPos()` 用 `cc.Camera.main.getScreenToWorldPoint()` 即時把滑鼠 screen → world，所以鏡頭移動也正確。
+- 沒有主相機（純 Canvas 場景）→ fallback 假設 screen == world，在無攝影機偏移的場景仍正確。
 
 ---
 
