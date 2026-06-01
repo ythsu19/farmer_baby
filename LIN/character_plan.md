@@ -55,9 +55,9 @@
 
 - [x] **3-1** 新建 `PlayerInput.ts`：監聽鍵盤，發 `input:move`、`input:jump-down` event（`input:attack` 等 Phase 4 再加）
 - [x] **3-2** Player.ts SECTION 2 改成接 event
-- [x] **3-3** 新建 `PlayerAnimator.ts`：監聽 `state-changed` 切 `cc.Animation` clip
+- [x] **3-3** 新建 `PlayerAnimator.ts`：監聽 `state-changed` **逐幀切 spriteFrame**（每狀態獨立 frames 陣列 + FPS）
 - [x] **3-4** 處理面向翻轉（聽 `facing-changed`，scaleX 翻面從 Player 移到 PlayerAnimator）
-- [ ] **3-5** 等動畫素材就位後接上實際 clip（Inspector 填 clipIdle / clipWalk / clipJump / clipFall 名稱）
+- [ ] **3-5** 等角色貼圖素材就位 → Inspector 拉影格進 `idleFrames` / `walkFrames` / `jumpFrames` / `fallFrames`，調 FPS
 
 **🛑 Commit point 3**：`refactor(player): 拆出 PlayerInput + PlayerAnimator`
 
@@ -122,3 +122,4 @@
 - `2026-05-29` 重新設計：改成 Mario 模式 — 單一 `objects` 物件層 + 物件 name 直接對應 Cocos node.group + Group Manager 矩陣處理碰撞；移除 LayerSpec / Tag 慣例；docs 全面更新
 - `2026-06-01` Phase 3 第一步：抽出 `PlayerInput.ts`（鍵盤 → event），Player.ts SECTION 2 改成接 event；輸入和行為解耦，之後換觸控 / 手把 / AI 都不用動 Player.ts
 - `2026-06-01` Phase 3 第二步：新建 `PlayerAnimator.ts`，訂閱 `state-changed` 切 clip、訂閱 `facing-changed` 翻 scaleX；Player.ts 不再碰 node.scaleX，純剩物理與狀態；clip 名稱 @property 化，動畫素材未就位也不會錯
+- `2026-06-01` PlayerAnimator 改為**逐幀貼圖**版（frame array + FPS），不用 cc.Animation 編輯器；Inspector 直接拉 SpriteFrame 進每狀態陣列、設 FPS；JUMP/FALL 可設「停最後一張」避免循環觀感

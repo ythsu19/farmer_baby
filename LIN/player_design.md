@@ -27,7 +27,7 @@ assets/scripts/player/
 ├── PlayerMovement.ts  ← 之後抽：移動 + 跳躍物理 + 落地判定
 ├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡
 ├── PlayerCombat.ts    ← 攻擊 / 射擊 / 子彈池
-├── PlayerAnimator.ts  ← Phase 3：訂閱 state-changed / facing-changed → 切 cc.Animation clip
+├── PlayerAnimator.ts  ← ✅ Phase 3：訂閱 state-changed / facing-changed → 逐幀切 spriteFrame + 翻 scaleX
 └── types.ts           ← 共用 enum / interface
 ```
 
