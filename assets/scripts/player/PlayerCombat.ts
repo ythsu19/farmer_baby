@@ -44,6 +44,7 @@ export default class PlayerCombat extends cc.Component {
     private _pool: cc.NodePool = null;
     private _cooldownTimer = 0;
     private _attackHeld = false;
+    private _warnedNoBullet = false;
 
     onLoad() {
         this._input = this.getComponent(PlayerInput);
@@ -124,7 +125,14 @@ export default class PlayerCombat extends cc.Component {
 
         const dirVec = cc.v2(dx, dy);
         const bullet = node.getComponent(Bullet);
-        if (bullet) bullet.init(dirVec, this._pool);
+        if (bullet) {
+            bullet.init(dirVec, this._pool);
+        } else if (!this._warnedNoBullet) {
+            this._warnedNoBullet = true;
+            cc.warn('[PlayerCombat] bulletPrefab 上找不到 player/Bullet.ts 元件。' +
+                ' 子彈會用「prefab 原本掛的東西」的行為（例如舊 characters/Bullet.ts 會單純朝右滑）。' +
+                ' 請確認 prefab 掛的是 assets/scripts/player/Bullet.ts，並移除舊的 characters/Bullet.ts。');
+        }
 
         this.node.emit('shot', { dir: dirVec });
     }
