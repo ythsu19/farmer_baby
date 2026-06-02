@@ -5,7 +5,7 @@
     "floor",
     "enemy",
     "item",
-    "buillet"
+    "bullet"
   ],
   "collision-matrix": [
     [
