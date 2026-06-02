@@ -1,5 +1,5 @@
 {
-    "activeFile": "WorldMap.tmx",
+    "activeFile": "WorldMap.tmj",
     "expandedProjectPaths": [
     ],
     "fileStates": {
@@ -12,6 +12,32 @@
         "ChatGPT Image1.tsx": {
             "scaleInDock": 0.25,
             "scaleInEditor": 1
+        },
+        "WorldMap.tmj": {
+            "scale": 0.5,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": -91,
+                "y": 950
+            }
+        },
+        "WorldMap.tmj#bush1A": {
+            "scaleInDock": 1
+        },
+        "WorldMap.tmj#bush3B": {
+            "scaleInDock": 1
+        },
+        "WorldMap.tmj#decorative_props": {
+            "scaleInDock": 1
+        },
+        "WorldMap.tmj#mainlevbuild": {
+            "scaleInDock": 1
+        },
+        "WorldMap.tmj#other_props": {
+            "scaleInDock": 1
+        },
+        "WorldMap.tmj#water_env": {
+            "scaleInDock": 1
         },
         "WorldMap.tmx": {
             "scale": 1.2122395833333333,
@@ -29,12 +55,20 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
-        "decorative_props.tsx": {
+        "bush3B.tsx": {
             "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "decorative_props.tsx": {
+            "scaleInDock": 0.75,
             "scaleInEditor": 1
         },
         "images.tsx": {
             "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "mainlevbuild.tsx": {
+            "scaleInDock": 0.5,
             "scaleInEditor": 1
         },
         "other_props.tsx": {
@@ -47,7 +81,7 @@
             "scaleInEditor": 0.0625
         },
         "water_env.tsx": {
-            "scaleInDock": 1,
+            "scaleInDock": 0.75,
             "scaleInEditor": 1
         }
     },
@@ -57,19 +91,25 @@
     "openFiles": [
         "bush1A.tsx",
         "water_env.tsx",
-        "WorldMap.tmx",
-        "decorative_props.tsx"
+        "WorldMap.tmj",
+        "decorative_props.tsx",
+        "mainlevbuild.tsx",
+        "bush3B.tsx",
+        "other_props.tsx"
     ],
     "project": "WorldMap.tiled-project",
     "recentFiles": [
-        "ChatGPT Image1.tsx",
-        "images.tsx",
-        "decorative_props.tsx",
         "bush1A.tsx",
         "water_env.tsx",
+        "other_props.tsx",
+        "bush3B.tsx",
+        "mainlevbuild.tsx",
+        "decorative_props.tsx",
+        "WorldMap.tmj",
+        "ChatGPT Image1.tsx",
+        "images.tsx",
         "WorldMap.tmx",
-        "tileset.tsx",
-        "other_props.tsx"
+        "tileset.tsx"
     ],
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
