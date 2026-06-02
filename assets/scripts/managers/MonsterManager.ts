@@ -1,115 +1,136 @@
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class MonsterManager extends cc.Component {
+export default class EnemyController extends cc.Component {
+    
+    @property({ type: cc.Integer, tooltip: "移動速度" })
+    moveSpeed: number = 50; 
 
-    // -----------------------------------------
-    // 編輯器屬性綁定
-    // -----------------------------------------
-    @property({ type: [cc.Prefab], tooltip: "放所有要測試的怪物 Prefab 陣列" })
-    monsterPrefabs: cc.Prefab[] = [];
+    @property({ type: cc.Float, tooltip: "巡邏時間 (幾秒後自動回頭)" })
+    patrolTime: number = 2.5; 
 
-    @property({ type: cc.Node, tooltip: "怪物生成的起始位置節點" })
-    spawnPoint: cc.Node = null;
+    private rb: cc.RigidBody = null;
+    private anim: cc.Animation = null;
+    private direction: number = -1; // -1 往左，1 往右
+    private timer: number = 0;
+    private isDead: boolean = false;
+    private isHitting: boolean = false;
 
-    @property({ type: cc.Float, tooltip: "自動生成的時間間隔(秒)" })
-    spawnInterval: number = 3.0;
-
-    @property({ type: cc.Boolean, tooltip: "是否開啟定時自動生成" })
-    autoSpawn: boolean = true;
-
-    // -----------------------------------------
-    // 內部變數
-    // -----------------------------------------
-    // 用來記錄目前在場上的所有怪物節點，方便一鍵清空
-    private activeMonsters: cc.Node[] = []; 
-
-    // -----------------------------------------
-    // 生命週期與監聽
-    // -----------------------------------------
     onLoad () {
-        // 開啟鍵盤監聽事件（測試用）
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        // ⚠️ 保險機制：確保物理引擎有開啟，避免穿透地板
+        cc.director.getPhysicsManager().enabled = true;
+
+        this.rb = this.getComponent(cc.RigidBody);
+        this.anim = this.getComponent(cc.Animation);
+        
+        if (this.anim) this.anim.play("idle");
     }
 
-    start () {
-        // 如果有勾選自動生成，才啟動計時器
-        if (this.autoSpawn) {
-            this.schedule(this.spawnRandomMonster, this.spawnInterval);
+    update (dt) {
+        if (this.isDead || this.isHitting || !this.rb) return;
+
+        // 1. 計時自動轉向邏輯
+        this.timer += dt;
+        if (this.timer >= this.patrolTime) {
+            this.turnAround();
         }
+
+        // 2. 套用物理速度 (只改 X，保留 Y 軸重力)
+        let v = this.rb.linearVelocity;
+        v.x = this.moveSpeed * this.direction;
+        this.rb.linearVelocity = v;
+
+        // 3. 翻轉圖片 (利用絕對值，確保吃蘑菇變大後的比例不會跑掉)
+        this.node.scaleX = this.direction > 0 ? -Math.abs(this.node.scaleX) : Math.abs(this.node.scaleX);
     }
 
-    onDestroy () {
-        // 養成好習慣，節點銷毀時關閉監聽，避免記憶體洩漏
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    /**
+     * 【新增】獨立的轉向邏輯，讓計時器與撞牆時都能共用
+     */
+    private turnAround() {
+        this.direction *= -1;
+        this.timer = 0; // 轉向後計時器歸零重新計算
     }
 
     // -----------------------------------------
-    // 測試專用：鍵盤事件處理
+    // 動作與狀態函式
     // -----------------------------------------
-    private onKeyDown(event: cc.Event.EventKeyboard) {
-        switch(event.keyCode) {
-            case cc.macro.KEY.s:
-                // 按下鍵盤 'S' 鍵：手動生成一隻隨機怪物
-                cc.log("【測試】按下 S，手動生成怪物");
-                this.spawnRandomMonster();
-                break;
+    
+    public playHit() {
+        if (this.isDead || this.isHitting) return;
+        
+        this.isHitting = true;
+        
+        if (this.anim) this.anim.play("attack"); 
+
+        this.scheduleOnce(() => {
+            this.isHitting = false;
+            if (!this.isDead && this.anim) {
+                this.anim.play("idle"); 
+            }
+        }, 0.5); 
+    }
+
+    public die() {
+        if (this.isDead) return;
+        this.isDead = true;
+
+        if (this.anim) this.anim.play("dead");
+
+        this.scheduleOnce(() => {
+            // 拔除碰撞框，並把剛體改為靜態，避免死掉的屍體繼續往下掉
+            let collider = this.getComponent(cc.PhysicsBoxCollider);
+            if (collider) collider.destroy(); 
+            
+            if (this.rb) {
+                this.rb.type = cc.RigidBodyType.Static; 
+                this.rb.linearVelocity = cc.v2(0, 0);
+            }
+        }, 0);
+
+        this.scheduleOnce(() => {
+            if (this.anim) this.anim.play("ascend");
+            
+            cc.tween(this.node)
+                .to(1.5, { y: this.node.y + 200, opacity: 0 }, { easing: 'sineOut' }) 
+                .call(() => {
+                    this.node.destroy();
+                })
+                .start();
+        }, 0.5);
+    }
+
+    // -----------------------------------------
+    // 物理碰撞事件
+    // -----------------------------------------
+    
+    onBeginContact(contact, selfCollider, otherCollider) {
+        
+        // 1. 吃蘑菇邏輯
+        if (otherCollider.node.name === "Mushroom") {
+            // 如果你有全域管理器，這裡要解開註解
+            // if (UIManager.instance) UIManager.instance.addScore(200);
+            // if (AudioManager.instance) AudioManager.instance.playMushroom();
+
+            this.scheduleOnce(() => {
+                if (otherCollider.node.isValid) otherCollider.node.destroy();
                 
-            case cc.macro.KEY.c:
-                // 按下鍵盤 'C' 鍵：清空場上所有測試怪物
-                cc.log("【測試】按下 C，清空場上所有怪物");
-                this.clearAllMonsters();
-                break;
-        }
-    }
-
-    // -----------------------------------------
-    // 核心邏輯：生成與管理
-    // -----------------------------------------
-
-    /**
-     * 隨機選擇一個 Prefab 並生成
-     */
-    spawnRandomMonster() {
-        if (this.monsterPrefabs.length === 0) {
-            cc.warn("MonsterPrefabs 陣列是空的，請先在 Inspector 拖入 Prefab！");
-            return;
+                let signX = this.node.scaleX > 0 ? 1 : -1;
+                this.node.scaleX = 1.5 * signX; 
+                this.node.scaleY = 1.5;
+                
+                // 往上提拔避免陷進地板
+                this.node.y += (selfCollider.node.height * 0.5 / 2) + 5;
+            }, 0);
+            
+            return; // 處理完蘑菇就結束，不往下判斷撞牆
         }
 
-        // 隨機抽一個怪物 Prefab
-        let randomIndex = Math.floor(Math.random() * this.monsterPrefabs.length);
-        let selectedPrefab = this.monsterPrefabs[randomIndex];
-
-        if (selectedPrefab) {
-            // 1. 實例化怪物
-            let monsterNode = cc.instantiate(selectedPrefab);
-
-            // 2. 丟進 Canvas 世界中（這邊丟在 Manager 所在的節點下）
-            this.node.addChild(monsterNode);
-
-            // 3. 設定初始位置
-            if (this.spawnPoint) {
-                monsterNode.setPosition(this.spawnPoint.position);
-            } else {
-                monsterNode.setPosition(cc.v2(600, 0)); // 防呆預設值
-            }
-
-            // 4. 紀錄到陣列中，以便之後追蹤與清空
-            this.activeMonsters.push(monsterNode);
+        // 2. 【新增】撞到牆壁/障礙物提早轉向邏輯
+        let normal = contact.getWorldManifold().normal;
+        // 如果法向量的 X 軸絕對值大於 0.5，代表撞到側邊
+        if (Math.abs(normal.x) > 0.5) {
+            this.turnAround();
         }
-    }
-
-    /**
-     * 清空場上所有怪物的控制函式
-     */
-    clearAllMonsters() {
-        for (let i = 0; i < this.activeMonsters.length; i++) {
-            let monster = this.activeMonsters[i];
-            if (cc.isValid(monster)) {
-                monster.destroy(); // 銷毀有效節點
-            }
-        }
-        // 清空陣列
-        this.activeMonsters = [];
     }
 }

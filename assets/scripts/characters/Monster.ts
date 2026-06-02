@@ -1,75 +1,93 @@
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class Monster extends cc.Component {
 
-    // -----------------------------------------
-    // 編輯器屬性綁定 (這些可以在 Cocos 編輯器中調整)
-    // -----------------------------------------
+    @property({ tooltip: '怪物的移動速度' })
+    moveSpeed: number = 100;
+
+    @property({ tooltip: '巡邏範圍的單側最大距離 (以起點為中心向左右巡邏)' })
+    patrolDistance: number = 150; // ★ 新增：設定巡邏範圍
+
+    @property({ tooltip: '怪物的最大血量' })
+    maxHealth: number = 10;
+
+    @property({ tooltip: '碰撞時對玩家造成的傷害' })
+    attackDamage: number = 1;
+
+    private currentHealth: number = 0;
+    private rb: cc.RigidBody = null;
+    private moveDirection: number = -1; // -1 表示向左，1 表示向右
     
-    @property({ type: cc.Integer, tooltip: "怪物最大血量" })
-    maxHp: number = 100;
+    private startX: number = 0; // ★ 新增：用來記錄怪物的出生初始位置
 
-    @property({ type: cc.Float, tooltip: "怪物移動速度" })
-    speed: number = 150;
-
-    // -----------------------------------------
-    // 內部變數 (不需要在編輯器中顯示的狀態)
-    // -----------------------------------------
-    
-    private currentHp: number = 0; // 當前血量
-
-    // -----------------------------------------
-    // 生命週期與邏輯
-    // -----------------------------------------
-
-    // onLoad 會在節點首次載入時執行，適合做初始化
-    onLoad () {
-        // 怪物生成時，將當前血量補滿
-        this.currentHp = this.maxHp;
+    onLoad() {
+        cc.director.getPhysicsManager().enabled = true;
+        this.currentHealth = this.maxHealth;
+        this.rb = this.getComponent(cc.RigidBody);
     }
 
-    // update 每幀都會執行，用來處理連續的動作 (如移動)
-    update (dt: number) {
-        // 基礎移動：每幀往左邊走
-        this.node.x -= this.speed * dt;
+    start() {
+        if (this.rb) {
+            this.rb.fixedRotation = true;
+        }
+        
+        // ★ 遊戲開始時，記錄怪物一開始的 X 座標
+        this.startX = this.node.x;
+    }
 
-        // 防呆機制：如果怪物走太遠（離開畫面左邊界），就把它刪除，避免消耗記憶體
-        if (this.node.x < -1500) {
-            this.node.destroy();
+    update(dt: number) {
+        if (!this.rb) return;
+
+        // ★ 核心邏輯：檢查是否超出巡邏範圍
+        let currentX = this.node.x;
+        
+        // 如果正在向左走，且目前座標小於「起點減去巡邏距離」 (到達左邊界)
+        if (this.moveDirection === -1 && currentX <= this.startX - this.patrolDistance) {
+            this.moveDirection = 1; // 轉向右
+        } 
+        // 如果正在向右走，且目前座標大於「起點加上巡邏距離」 (到達右邊界)
+        else if (this.moveDirection === 1 && currentX >= this.startX + this.patrolDistance) {
+            this.moveDirection = -1; // 轉向左
+        }
+
+        // 設置水平移動速度，保持垂直速度不變
+        let velocity = this.rb.linearVelocity;
+        velocity.x = this.moveDirection * this.moveSpeed;
+        this.rb.linearVelocity = velocity;
+
+        // 翻轉怪物面向
+        this.updateFacingDirection();
+    }
+
+    onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        const otherNodeName = otherCollider.node.name;
+
+        // 如果中途撞到牆壁或其他怪物，依然可以提早回頭 (保留之前的邏輯)
+        if (otherNodeName === 'wall' || otherCollider.tag === 1) {
+            this.moveDirection *= -1;
+        }
+
+        // 碰到玩家
+        if (otherNodeName === 'Player') {
+            console.log("打中玩家了！造成傷害：" + this.attackDamage);
         }
     }
 
-    // -----------------------------------------
-    // 互動函式 (給其他腳本呼叫的介面)
-    // -----------------------------------------
-
-    /**
-     * 讓怪物受到傷害 (未來可以讓「子彈腳本」來呼叫這個函式)
-     * @param damage 傷害數值
-     */
-    takeDamage (damage: number) {
-        this.currentHp -= damage;
-        cc.log(`怪物受到 ${damage} 點傷害，剩餘血量: ${this.currentHp}`);
-
-        // 也可以在這裡加入「受傷閃爍」的美術效果
-
-        if (this.currentHp <= 0) {
+    public takeDamage(damage: number) {
+        this.currentHealth -= damage;
+        console.log(`怪物受傷，剩餘血量: ${this.currentHealth}`);
+        if (this.currentHealth <= 0) {
             this.die();
         }
     }
 
-    /**
-     * 怪物死亡處理
-     */
-    die () {
-        cc.log("怪物死亡！");
-        
-        // 1. (未來擴充) 播放死亡動畫
-        // 2. (未來擴充) 掉落金幣或道具
-        // 3. (未來擴充) 通知 Manager 減少場上怪物計數
-        
-        // 銷毀怪物節點
+    private die() {
+        console.log("怪物死亡！");
         this.node.destroy();
+    }
+
+    private updateFacingDirection() {
+        this.node.scaleX = -this.moveDirection * Math.abs(this.node.scaleX);
     }
 }
