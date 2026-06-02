@@ -33,6 +33,12 @@ assets/scripts/player/
 ├── Damageable.ts      ← ✅ Phase 4-B：通用敵人 HP（測試靶子用，介面跟 PlayerHealth 對稱）
 ├── PlayerAnimator.ts  ← ✅ Phase 3：訂閱 state-changed / facing-changed → 逐幀切 spriteFrame + 翻 scaleX
 └── types.ts           ← 共用 enum / interface
+
+assets/scripts/tutorial/
+├── TutorialManager.ts  ← ✅ Phase 5：step machine，訂閱 player 事件 / 全域 beacon → 推 hint
+├── TutorialHint.ts     ← ✅ Phase 5：prefab 元件；Label + 箭頭 + 淡入淡出
+├── TutorialBeacon.ts   ← ✅ Phase 5：掛在 checkpoint / 靶子，contact 或 host-died 時 cc.game.emit
+└── steps.ts            ← ✅ Phase 5：教學步驟資料（不放 Inspector）
 ```
 
 > 舊的 `assets/scripts/characters/Bullet.ts` + `PlayerShooter.ts` 用 `cc.Collider`（碰撞系統），跟 box2d 不相容；新場景一律用 `assets/scripts/player/` 下的新版。
@@ -65,6 +71,10 @@ assets/scripts/player/
 | `hp-changed` | PlayerHealth / Damageable | `{ hp, maxHp, delta }` | HUD 用；delta 正/負皆有 |
 | `hurt` | PlayerHealth / Damageable | `{ damage, attacker }` | 實際扣到血的瞬間（無敵被擋的不發） |
 | `died` | PlayerHealth / Damageable | — | HP 歸零瞬間，只發一次 |
+| `tutorial:beacon` | TutorialBeacon → `cc.game` | `{ id, node }` | 全域發；TutorialManager 訂閱比對 step.beaconId |
+| `tutorial:step-started` | TutorialManager | `{ stepIndex, step }` | 給 UI / 音效旁聽 |
+| `tutorial:step-completed` | TutorialManager | `{ stepIndex, step }` | 同上 |
+| `tutorial:completed` | TutorialManager | — | 全部步驟完成；之後接 GameManager 切場景 |
 
 ---
 
@@ -218,6 +228,36 @@ class Player {
 
 ---
 
+## 教學流程架構（Phase 5）
+
+```
+TutorialManager (Canvas/TutorialManager 節點)
+├── steps[]                  ← 從 steps.ts import
+├── 訂閱 playerNode 上的 input:move / jumped / shot ...
+├── 訂閱 cc.game 'tutorial:beacon'（全域）
+└── 推 TutorialHint.show(text, arrowTarget)
+
+TutorialHint.prefab
+├── Background (cc.Sprite)
+├── Label      (cc.Label)
+└── Arrow      (cc.Sprite，每幀指向 anchorTarget；素材畫朝右)
+
+TutorialBeacon (掛在 checkpoint / 靶子上)
+├── mode='contact'    → player 撞到觸發
+└── mode='host-died'  → 訂閱同節點 'died'（配 Damageable 靶子）
+   → 觸發後 cc.game.emit('tutorial:beacon', {id})
+```
+
+設計取捨：
+- **教學內容寫在 `steps.ts`**：反覆改寫；git diff > Inspector 拉欄位
+- **完成條件靠事件而非 polling**：呼應既有 input:* / jumped / shot 詞彙，manager 不碰 player 內部狀態
+- **`cc.game.emit` 全域 beacon**：beacon 不知道 manager 在哪、manager 不知道 beacon 在哪個節點；雙向解耦
+- **`host-died` 模式**：靶子打爆後 Damageable 會 destroy 節點；beacon 在 destroy 前能正確發訊（onDestroy 解綁，不會殘留）
+- **完成步驟切換用 `scheduleOnce`**：給 0.8s 讓玩家看到 ✓；不用 tween 鏈，好除錯
+- **`tutorial:completed` 不自動切場景**：先 emit，等 `Game.fire` 真的做好再串 GameManager
+
+---
+
 ## 後續演進路徑
 
 1. ~~單檔 Player.ts，已分 SECTION，可直接執行~~ ✅
@@ -225,6 +265,7 @@ class Player {
 3. ~~Phase 3：抽 PlayerInput、PlayerAnimator~~ ✅
 4. ~~Phase 4-A：PlayerCombat + Bullet + WeaponAim（滑鼠瞄準）~~ ✅
 5. ~~Phase 4-B：PlayerHealth + Damager + Damageable~~ ✅
-6. **Phase 5**：可選 — 拆 PlayerStateMachine、做 HUD / HP bar、教學流程
+6. **Phase 5**：教學流程（TutorialManager + TutorialHint + TutorialBeacon + steps.ts）— 程式 ✅，Cocos prefab/場景 ⏳
+7. **Phase 6+**：可選 — 拆 PlayerStateMachine、做 HUD / HP bar、接 Game.fire
 
 每個 Phase 都要保持 Tutorial 場景可玩。

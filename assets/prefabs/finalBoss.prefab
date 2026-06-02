@@ -1,0 +1,461 @@
+[
+  {
+    "__type__": "cc.Prefab",
+    "_name": "",
+    "_objFlags": 0,
+    "_native": "",
+    "data": {
+      "__id__": 1
+    },
+    "optimizationPolicy": 0,
+    "asyncLoadAssets": false,
+    "readonly": false
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "finalBoss",
+    "_objFlags": 0,
+    "_parent": null,
+    "_children": [
+      {
+        "__id__": 2
+      },
+      {
+        "__id__": 6
+      }
+    ],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 10
+      }
+    ],
+    "_prefab": {
+      "__id__": 11
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 0,
+      "height": 0
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        -42.789,
+        -106.964,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "body",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 1
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 3
+      },
+      {
+        "__id__": 4
+      }
+    ],
+    "_prefab": {
+      "__id__": 5
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 1024,
+      "height": 1501
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        3.959,
+        65.369,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0.5,
+        0.5,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "85315a8f-d3cc-44c3-87b5-6491f94a1f10"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.BoxCollider",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "tag": 0,
+    "_offset": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_size": {
+      "__type__": "cc.Size",
+      "width": 103,
+      "height": 107
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "f83oBk9U9Lcq/tjhv66F3H",
+    "sync": false
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "hat",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 1
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 7
+      },
+      {
+        "__id__": 8
+      }
+    ],
+    "_prefab": {
+      "__id__": 9
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 796,
+      "height": 554
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        336.04,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0.35,
+        0.35,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 6
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "31c57952-141e-4229-b7ec-d5fc4b5b7b47"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PolygonCollider",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 6
+    },
+    "_enabled": true,
+    "tag": 0,
+    "_offset": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "points": [
+      {
+        "__type__": "cc.Vec2",
+        "x": -197,
+        "y": -20
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": -363,
+        "y": -84
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": -336,
+        "y": -148
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": -205,
+        "y": -202
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 3,
+        "y": -243
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 253,
+        "y": -220
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 379,
+        "y": -122
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 248,
+        "y": -78
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 204,
+        "y": -46
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 154,
+        "y": 125
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": -124,
+        "y": 165
+      }
+    ],
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "86IqAIdIFM5Z+xa93QHj1u",
+    "sync": false
+  },
+  {
+    "__type__": "8d1a2VGpqND0aBPcB6SLzNY",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "maxHp": 1000,
+    "phase2Threshold": 0.7,
+    "phase3Threshold": 0.3,
+    "hatBreakLossRatio": 0.1,
+    "hatNode": {
+      "__id__": 6
+    },
+    "otherWeakPoints": [],
+    "playerNode": null,
+    "cameraNode": null,
+    "attackLayer": null,
+    "scythePrefab": {
+      "__uuid__": "fc42fe48-374d-41a0-ab22-3cfe471fd446"
+    },
+    "rakePrefab": {
+      "__uuid__": "c1e34189-4d16-4c76-b678-97849fde7cf3"
+    },
+    "slamShockPrefab": null,
+    "minionPrefab": null,
+    "moveSpeed": 120,
+    "keepDistanceX": 260,
+    "groundY": -200,
+    "arenaMinX": -800,
+    "arenaMaxX": 800,
+    "attackInterval": 2.5,
+    "phase3IntervalScale": 0.6,
+    "scytheSweepDuration": 0.8,
+    "scytheSweepRange": 500,
+    "scytheBladeY": -100,
+    "scytheCooldown": 4,
+    "jumpUpDuration": 0.6,
+    "jumpHangDuration": 0.8,
+    "jumpFallDuration": 0.35,
+    "jumpUpOffsetY": 900,
+    "shakeAmplitude": 30,
+    "shakeDuration": 0.5,
+    "slamHitRadius": 200,
+    "slamDamage": 25,
+    "rakeTelegraphDuration": 0.6,
+    "rakeStabDuration": 0.25,
+    "rakeStartOffsetY": 600,
+    "rakeLingerDuration": 0.3,
+    "phase2SummonInterval": 6,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "",
+    "sync": false
+  }
+]
