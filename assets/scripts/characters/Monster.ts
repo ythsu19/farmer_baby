@@ -10,7 +10,7 @@ export default class Monster extends cc.Component {
     patrolDistance: number = 150;
 
     @property({ tooltip: '怪物的最大血量' })
-    maxHealth: number = 10;
+    maxHealth: number = 3; 
 
     @property({ tooltip: '碰撞時對玩家造成的傷害' })
     attackDamage: number = 1;
@@ -18,25 +18,31 @@ export default class Monster extends cc.Component {
     @property({ tooltip: '偵測玩家的距離 (視野範圍)' })
     detectDistance: number = 200;
 
-    @property({ tooltip: '每次攻擊的持續時間 (秒)，建議與攻擊動畫的長度一致' })
+    @property({ tooltip: '每次攻擊的持續時間 (秒)' })
     attackDuration: number = 1.0; 
+
+    @property({ tooltip: '受擊/擊退動畫的持續時間 (秒)' })
+    knockbackDuration: number = 0.5; 
+
+    @property({ tooltip: '被擊退時的後退速度' })
+    knockbackSpeed: number = 150;
 
     private currentHealth: number = 0;
     private rb: cc.RigidBody = null;
-    private anim: cc.Animation = null; // ★ 新增：用來控制動畫的變數
+    private anim: cc.Animation = null; 
     private moveDirection: number = -1;
     
     private startX: number = 0;
     
     private isAttacking: boolean = false;
+    private isDead: boolean = false; 
+    private isKnockedBack: boolean = false; 
     private playerNode: cc.Node = null;
 
     onLoad() {
         cc.director.getPhysicsManager().enabled = true;
         this.currentHealth = this.maxHealth;
         this.rb = this.getComponent(cc.RigidBody);
-        
-        // ★ 獲取節點上的 Animation 組件
         this.anim = this.getComponent(cc.Animation);
     }
 
@@ -52,8 +58,7 @@ export default class Monster extends cc.Component {
             console.warn("Monster 找不到 Player 節點，請確認玩家節點名稱是否為 'Player'");
         }
         
-        // 確保遊戲開始時播放走路動畫 (因為你截圖有勾選 Play On Load，這步為雙重保險)
-        if (this.anim && !this.isAttacking) {
+        if (this.anim && !this.isAttacking && !this.isDead && !this.isKnockedBack) {
             this.anim.play('onion_walk');
         }
     }
@@ -61,9 +66,9 @@ export default class Monster extends cc.Component {
     update(dt: number) {
         if (!this.rb) return;
 
-        if (this.isAttacking) {
-            return; 
-        }
+        if (this.isDead || this.isKnockedBack) return;
+
+        if (this.isAttacking) return; 
 
         this.checkPlayerInSight();
 
@@ -86,7 +91,7 @@ export default class Monster extends cc.Component {
     }
 
     private checkPlayerInSight() {
-        if (!this.playerNode) return;
+        if (!this.playerNode || this.isDead || this.isKnockedBack) return;
 
         let dx = this.playerNode.x - this.node.x;
         let dy = this.playerNode.y - this.node.y;
@@ -108,38 +113,39 @@ export default class Monster extends cc.Component {
     }
 
     private startAttack() {
+        if (this.isDead || this.isKnockedBack) return;
+        
         this.isAttacking = true;
-        console.log("發現玩家！發動攻擊！");
 
         if (this.rb) {
             this.rb.linearVelocity = cc.v2(0, this.rb.linearVelocity.y);
         }
 
-        // ★ 播放攻擊動畫 (填入截圖中設定的 Clip 名稱)
         if (this.anim) {
             this.anim.play('onion_attack');
         }
 
         this.scheduleOnce(() => {
-            this.endAttack();
+            if (!this.isDead && !this.isKnockedBack) { 
+                this.endAttack();
+            }
         }, this.attackDuration);
     }
 
     private endAttack() {
         this.isAttacking = false;
-        console.log("攻擊結束，恢復巡邏");
-        
-        // ★ 攻擊結束後，切換回走路動畫
-        if (this.anim) {
+        if (this.anim && !this.isDead && !this.isKnockedBack) {
             this.anim.play('onion_walk');
         }
     }
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        if (this.isDead) return;
+
         const otherNodeName = otherCollider.node.name;
 
         if (otherNodeName === 'wall' || otherCollider.tag === 1) {
-            if (!this.isAttacking) {
+            if (!this.isAttacking && !this.isKnockedBack) {
                 this.moveDirection *= -1;
             }
         }
@@ -147,19 +153,97 @@ export default class Monster extends cc.Component {
         if (otherNodeName === 'Player') {
             console.log("碰到玩家實體！造成碰撞傷害：" + this.attackDamage);
         }
-    }
 
-    public takeDamage(damage: number) {
-        this.currentHealth -= damage;
-        console.log(`怪物受傷，剩餘血量: ${this.currentHealth}`);
-        if (this.currentHealth <= 0) {
-            this.die();
+        if (otherNodeName === 'Bullet') {
+            let bulletNode = otherCollider.node;
+
+            // ★ 計算世界座標，判斷擊退方向
+            let bulletWorldPos = bulletNode.convertToWorldSpaceAR(cc.v2(0, 0));
+            let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
+            
+            let knockbackDir = monsterWorldPos.x >= bulletWorldPos.x ? 1 : -1;
+
+            otherCollider.node.destroy(); 
+            
+            // ★ 將方向參數帶入
+            this.takeDamage(1, knockbackDir); 
         }
     }
 
+    // ★ 接收方向參數
+    public takeDamage(damage: number, knockbackDir: number = 0) {
+        if (this.isDead) return; 
+
+        this.currentHealth -= damage;
+        console.log(`怪物受傷，扣除 ${damage} 滴血，剩餘血量: ${this.currentHealth}`);
+        
+        if (this.currentHealth <= 0) {
+            this.die();
+        } else {
+            // ★ 將方向參數傳入擊退函式
+            this.playKnockback(knockbackDir);
+        }
+    }
+
+    // ★ 接收方向參數並套用物理表現
+    private playKnockback(knockbackDir: number = 0) {
+        if (this.isDead) return;
+        
+        this.isKnockedBack = true;
+        this.isAttacking = false; 
+
+        if (this.rb) {
+            let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
+            this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
+        }
+
+        if (this.anim) {
+            this.anim.play('onion_knockback'); 
+        }
+
+        this.scheduleOnce(() => {
+            if (!this.isDead) { 
+                this.isKnockedBack = false;
+                
+                if (this.rb) {
+                    this.rb.linearVelocity = cc.v2(0, this.rb.linearVelocity.y);
+                }
+
+                if (this.anim) {
+                    this.anim.play('onion_walk');
+                }
+            }
+        }, this.knockbackDuration);
+    }
+
     private die() {
-        console.log("怪物死亡！");
-        this.node.destroy();
+        if (this.isDead) return;
+        this.isDead = true; 
+
+        console.log("怪物死亡！等待物理引擎解鎖...");
+
+        this.scheduleOnce(() => {
+            if (this.rb) {
+                this.rb.linearVelocity = cc.v2(0, 0);
+                this.rb.type = cc.RigidBodyType.Static; 
+            }
+
+            let collider = this.getComponent(cc.PhysicsCollider);
+            if (collider) {
+                collider.sensor = true; 
+                collider.apply(); 
+            }
+
+            if (this.anim) {
+                this.anim.play('onion_death'); 
+            }
+
+            this.scheduleOnce(() => {
+                if (this.node.isValid) { 
+                    this.node.destroy();
+                }
+            }, 1.0); 
+        }, 0); 
     }
 
     private updateFacingDirection() {
