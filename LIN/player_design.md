@@ -25,10 +25,12 @@ assets/scripts/player/
 ├── Player.ts          ← 主元件；移動 / 物理 / 狀態機；面向被動接 facing-changed 同步
 ├── PlayerInput.ts     ← ✅ Phase 3 + 4-A：鍵盤 (移動/跳) + 滑鼠 (左鍵 fire / 滑鼠位置 aim)
 ├── PlayerMovement.ts  ← 之後抽：移動 + 跳躍物理 + 落地判定
-├── PlayerHealth.ts    ← HP、受傷、無敵時間、死亡（Phase 4-B）
+├── PlayerHealth.ts    ← ✅ Phase 4-B：HP / 無敵時間 / 死亡 / 閃爍 + takeDamage 介面
 ├── PlayerCombat.ts    ← ✅ Phase 4-A：滑鼠左鍵按住 → 朝滑鼠方向 spawn 子彈（NodePool 池化）
 ├── WeaponAim.ts       ← ✅ Phase 4-A：每幀讀滑鼠世界座標 → 旋轉武器、上下翻、決定 Player 面向
 ├── Bullet.ts          ← ✅ Phase 4-A：box2d sensor 子彈（任意方向向量、視覺隨方向旋轉）
+├── Damager.ts         ← ✅ Phase 4-B：接觸 player → 對方 PlayerHealth.takeDamage（陷阱/接觸怪共用）
+├── Damageable.ts      ← ✅ Phase 4-B：通用敵人 HP（測試靶子用，介面跟 PlayerHealth 對稱）
 ├── PlayerAnimator.ts  ← ✅ Phase 3：訂閱 state-changed / facing-changed → 逐幀切 spriteFrame + 翻 scaleX
 └── types.ts           ← 共用 enum / interface
 ```
@@ -60,9 +62,9 @@ assets/scripts/player/
 | `landed` | Player | — | 落地瞬間（給音效 + 灰塵特效） |
 | `facing-changed` | WeaponAim | `right: boolean` | 面向翻轉（用滑鼠 x 相對武器中心判斷） |
 | `shot` | PlayerCombat | `{ dir: cc.Vec2 }` | 每發子彈瞬間（音效 / 後座力 / 鏡頭抖） |
-| `hp-changed` | PlayerHealth | `{ hp, maxHp, delta }` | HUD 用 |
-| `hurt` | PlayerHealth | `{ damage, from }` | 受傷瞬間 |
-| `died` | PlayerHealth | — | 死亡（結算用） |
+| `hp-changed` | PlayerHealth / Damageable | `{ hp, maxHp, delta }` | HUD 用；delta 正/負皆有 |
+| `hurt` | PlayerHealth / Damageable | `{ damage, attacker }` | 實際扣到血的瞬間（無敵被擋的不發） |
+| `died` | PlayerHealth / Damageable | — | HP 歸零瞬間，只發一次 |
 
 ---
 
@@ -167,6 +169,30 @@ Bullet.prefab (group: bullet)
 
 ---
 
+## HP / 傷害架構（Phase 4-B）
+
+```
+傷害來源                    →   接收器                      →   結果
+────────────────────────       ──────────────────────────       ──────
+敵人 Damager onBeginContact →  PlayerHealth.takeDamage      →   玩家扣血 + 無敵期 + 閃爍
+玩家 Bullet onBeginContact  →  Damageable.takeDamage         →   敵人扣血（或秒殺）
+                            →  Monster/EnemyBase.takeDamage  →   之後真做敵人 AI 換掉 Damageable
+玩家 Bullet onBeginContact  →  PlayerHealth.takeDamage       →   理論上不會（group matrix 擋掉 bullet↔player）
+```
+
+統一 `takeDamage(damage, attacker?)` 介面是「鴨子型別」契約：
+- Bullet 不認得各 class，只看「有沒有這個方法」 → 之後新增敵人類別不用改 Bullet
+- Damager 也一樣，只認 `playerNode.getComponent('PlayerHealth')`
+
+設計取捨：
+- **PlayerHealth 跟 Damageable 介面對稱**：方便之後抽出共用基底（`HealthBase.ts`），現在不抽避免過早抽象
+- **無敵期內 takeDamage 直接 return false**：呼叫端不用知道有無敵期，丟出傷害就好
+- **PlayerHealth 自帶閃爍**：避免再開一個 HurtFlash 元件 — 閃爍跟無敵時間綁定，放一起最直觀。`flashNode` @property 留空就不閃
+- **死亡時 disable 其他元件而非 destroy 節點**：節點還在場景，方便播死亡動畫 / 顯示 game over，要 destroy 由 GameManager 決定時機
+- **Damageable 死亡會自動 destroy**：測試用，之後做真敵人時用 Monster.ts 取代
+
+---
+
 ## 對外公開 API
 
 ```typescript
@@ -197,7 +223,8 @@ class Player {
 1. ~~單檔 Player.ts，已分 SECTION，可直接執行~~ ✅
 2. ~~Phase 2：升級物理（box2d + Tiled）~~ ✅
 3. ~~Phase 3：抽 PlayerInput、PlayerAnimator~~ ✅
-4. **Phase 4**：PlayerCombat + Bullet（4-A ✅）、PlayerHealth（4-B 待做）
-5. **Phase 5**：可選 — 拆 PlayerStateMachine 出來
+4. ~~Phase 4-A：PlayerCombat + Bullet + WeaponAim（滑鼠瞄準）~~ ✅
+5. ~~Phase 4-B：PlayerHealth + Damager + Damageable~~ ✅
+6. **Phase 5**：可選 — 拆 PlayerStateMachine、做 HUD / HP bar、教學流程
 
 每個 Phase 都要保持 Tutorial 場景可玩。

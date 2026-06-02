@@ -86,14 +86,26 @@
 
 **🛑 Commit point 4-A**：`feat(player): PlayerCombat + Bullet 射擊系統`
 
-### 4-B HP 系統
+### 4-B HP 系統 + 受傷流程
 
-- [ ] **4-B-1** `PlayerHealth.ts`：maxHp / 受傷 / 無敵時間 / 死亡 event
-- [ ] **4-B-2** 提供 `takeDamage(damage, attacker?)` 介面（敵人子彈 / 接觸傷害呼叫）
-- [ ] **4-B-3** 在 Tutorial 加陷阱（spike）/ 簡單敵人驗證受傷流程
-- [ ] **4-B-4** HUD：HP bar prefab（之後也可放 Phase 5 做）
+- [x] **4-B-1** `PlayerHealth.ts`：maxHp / 無敵時間 / 死亡 event / 受傷閃爍 / 死亡時自動 disable 其他 Player 元件
+- [x] **4-B-2** `takeDamage(damage, attacker?) → boolean` 介面（鴨子型別，任何來源呼叫；無敵期被擋回 false）
+- [x] **4-B-3** `Damager.ts`：接觸 player → 對方 PlayerHealth.takeDamage（陷阱／接觸傷害敵人通用）；支援 continuous 模式（火坑/酸池）
+- [x] **4-B-4** `Damageable.ts`：通用敵人 HP（測試靶子用，介面跟 PlayerHealth 對稱；HP 歸零 → destroy）
+- [x] **4-B-5** `Bullet.ts` 鴨子型別清單加入 `Damageable`
+- [ ] **4-B-6** Cocos：Player 節點 Add `PlayerHealth.ts`，Inspector 拉 `flashNode`（角色本體 Sprite）、調 `maxHp` / `invincibilityDuration`
+- [ ] **4-B-7** Tutorial 場景拉一個刺陷阱節點（Group=`enemy`、RigidBody Static + PhysicsBoxCollider + `Damager`，damage=20）測接觸傷害
+- [ ] **4-B-8** Tutorial 場景拉一個靶子節點（Group=`enemy`、RigidBody Static + PhysicsBoxCollider + `Damageable` maxHp=30）測子彈打靶
+- [ ] **4-B-9** Play 測試：靠近刺 → 扣血 + 閃爍 + 0.8s 無敵；打靶子 → 靶子扣血 → HP 0 後 destroy；HP 0 後玩家不能動 / 不能射
 
-**🛑 Commit point 4-B**：`feat(player): PlayerHealth + 受傷流程`
+### 4-B 之後可選（不一定要這個 Phase 做）
+
+- [ ] HUD：HP bar prefab + 訂閱 hp-changed 更新
+- [ ] HurtSound：訂閱 hurt event 播音效
+- [ ] 受傷擊退：訂閱 hurt event 給 Player 一個反向 impulse
+- [ ] 死亡重啟：訂閱 died event → 延遲 1s → cc.director.loadScene 重載 Tutorial
+
+**🛑 Commit point 4-B**：`feat(player): PlayerHealth + Damager + Damageable`
 
 ---
 
@@ -146,3 +158,4 @@
 - `2026-06-01` PlayerAnimator 改為**逐幀貼圖**版（frame array + FPS），不用 cc.Animation 編輯器；Inspector 直接拉 SpriteFrame 進每狀態陣列、設 FPS；JUMP/FALL 可設「停最後一張」避免循環觀感
 - `2026-06-01` Phase 4-A：新建 `Bullet.ts`（box2d sensor 版，跟舊 `characters/Bullet.ts` 區隔）+ `PlayerCombat.ts`（NodePool + 按住連射）；`PlayerInput.ts` 加攻擊事件
 - `2026-06-01` Phase 4-A 改寫成「滑鼠瞄準射擊」：射擊鍵改滑鼠左鍵（按住連射）、武器跟著滑鼠轉向（新 `WeaponAim.ts`，滑鼠在左翻 scaleY 讓槍管朝外）、子彈方向 = normalize(滑鼠 − 槍口)、`Bullet.init` 改收 `Vec2` 並隨方向旋轉視覺、Player 面向改由 WeaponAim 決定（依滑鼠 x 相對武器中心，含 8px 死區），Player.ts 移除速度判面向邏輯
+- `2026-06-02` Phase 4-B：新建 `PlayerHealth.ts`（HP / 0.8s 無敵 / 死亡 disable 移動射擊 / flashNode 透明度閃爍）+ `Damager.ts`（陷阱接觸 player → takeDamage，可選持續傷害模式由 PlayerHealth 無敵節流）+ `Damageable.ts`（通用敵人 HP，介面對稱方便靶子測試 / 之後換成正式敵人）；Bullet 鴨子型別清單加 Damageable；統一 `takeDamage(damage, attacker?) → boolean` 介面，呼叫端不用知道對方 class

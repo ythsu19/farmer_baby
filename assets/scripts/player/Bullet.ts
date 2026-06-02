@@ -86,8 +86,9 @@ export default class Bullet extends cc.Component {
         // 不打自己人 / 別的子彈（保險，正常 group matrix 已過濾）
         if (group === 'player' || group === 'bullet') return;
 
-        // 對方有 takeDamage 就掉血（PlayerHealth / Monster / EnemyBase 都可實作這個介面）
-        const target: any = other.getComponent('Monster')
+        // 對方有 takeDamage 就掉血（Damageable / Monster / EnemyBase / PlayerHealth 都實作這個介面）
+        const target: any = other.getComponent('Damageable')
+            || other.getComponent('Monster')
             || other.getComponent('EnemyBase')
             || other.getComponent('PlayerHealth');
         if (target && typeof target.takeDamage === 'function') {
