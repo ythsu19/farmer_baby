@@ -112,24 +112,43 @@
 ## Phase 5：教學引導流程
 
 > 目標：教學關卡有引導 UI、步驟提示、完成判定。
+> 架構：純事件驅動 — manager 訂閱 player 既有事件（input:move / jumped / shot）+ 全域 `tutorial:beacon`。
 
-- [ ] **5-1** 設計教學步驟（列在下方「教學腳本」區）
-- [ ] **5-2** 做 `TutorialHint.prefab`（提示文字 + 箭頭）
-- [ ] **5-3** `TutorialManager` 用 step machine 控制流程
-- [ ] **5-4** 每完成一步觸發下一個 hint
-- [ ] **5-5** 全部完成後可進入正式關卡（`Game.fire`）
+### 5-A 程式部分
 
-**🛑 Commit point 5**：`feat: 教學引導流程`
+- [x] **5-A-1** `TutorialHint.ts`：Label + 可選箭頭（每幀指向 anchor target）+ 淡入淡出
+- [x] **5-A-2** `TutorialBeacon.ts`：mode='contact' 或 'host-died'；觸發 → `cc.game.emit('tutorial:beacon', {id})`
+- [x] **5-A-3** `steps.ts`：5 步預設腳本（move / jump-spike-1 / double-jump-spike-2 / shoot / target-down）
+- [x] **5-A-4** `TutorialManager.ts`：step machine + 訂閱解訂閱 + 0.8s 完成延遲
+
+### 5-B Cocos 部分
+
+- [ ] **5-B-1** 做 `TutorialHint.prefab`（Canvas 下：Background + Label + Arrow，掛 TutorialHint.ts）
+- [ ] **5-B-2** Tutorial.fire / Canvas 下加空節點 `TutorialManager`，掛 TutorialManager.ts
+  - [ ] Inspector：`Player Node` 拉 Player 節點
+  - [ ] Inspector：`Hint` 拉 TutorialHint.prefab 的場景實例
+  - [ ] Inspector：`Arrow Target Ids` 與 `Arrow Target Nodes` 兩欄一一對應拉 spike-1 / spike-2 / target
+- [ ] **5-B-3** Tutorial.fire 拉地形：兩段尖刺 + 兩段平台（小刺、大刺）
+  - [ ] 尖刺節點掛 `Damager`（damage=20）— 沿用 Phase 4-B 設計
+- [ ] **5-B-4** 在小刺後方平台拉空節點 `Beacon_Spike1`（Sensor PhysicsBoxCollider + RigidBody Static + TutorialBeacon mode='contact' beaconId='spike-1'）
+- [ ] **5-B-5** 在大刺後方平台拉空節點 `Beacon_Spike2`（同上，beaconId='spike-2'）
+- [ ] **5-B-6** 在 Phase 4-B 已有的靶子節點再加 `TutorialBeacon` mode='host-died' beaconId='target'
+- [ ] **5-B-7** Play 測試：5 步逐一過、箭頭指對地方、紅靶打爆觸發最後一步
+- [ ] **5-B-8** 微調 hint 文字 / startDelay / nextStepDelay
+
+**🛑 Commit point 5**：`feat(tutorial): 教學引導 step machine + Hint + Beacon`
 
 ---
 
-## 教學腳本（草稿，待 Phase 5 填）
+## 教學腳本（Phase 5 已定，可改 `assets/scripts/tutorial/steps.ts`）
 
-| 步驟 | 提示文字 | 完成條件 |
-|------|---------|---------|
-| 1 |  |  |
-| 2 |  |  |
-| 3 |  |  |
+| 步驟 | id | 提示文字 | 完成條件 | 箭頭目標 |
+|------|----|---------|----------|----------|
+| 1 | move | 按 A / D 走動 | `input:move`(dir≠0) × 5 | — |
+| 2 | jump-spike-1 | 按 Space 跳起來，跨過前方的尖刺 | beacon `spike-1` | spike-1 |
+| 3 | double-jump-spike-2 | 空中再按一次跳：雙跳跨更大的刺 | beacon `spike-2` | spike-2 |
+| 4 | shoot | 用滑鼠瞄準、按住左鍵射擊 | `shot` × 1 | — |
+| 5 | target-down | 打爆紅靶 | beacon `target`（host-died） | target |
 
 ---
 
@@ -159,3 +178,4 @@
 - `2026-06-01` Phase 4-A：新建 `Bullet.ts`（box2d sensor 版，跟舊 `characters/Bullet.ts` 區隔）+ `PlayerCombat.ts`（NodePool + 按住連射）；`PlayerInput.ts` 加攻擊事件
 - `2026-06-01` Phase 4-A 改寫成「滑鼠瞄準射擊」：射擊鍵改滑鼠左鍵（按住連射）、武器跟著滑鼠轉向（新 `WeaponAim.ts`，滑鼠在左翻 scaleY 讓槍管朝外）、子彈方向 = normalize(滑鼠 − 槍口)、`Bullet.init` 改收 `Vec2` 並隨方向旋轉視覺、Player 面向改由 WeaponAim 決定（依滑鼠 x 相對武器中心，含 8px 死區），Player.ts 移除速度判面向邏輯
 - `2026-06-02` Phase 4-B：新建 `PlayerHealth.ts`（HP / 0.8s 無敵 / 死亡 disable 移動射擊 / flashNode 透明度閃爍）+ `Damager.ts`（陷阱接觸 player → takeDamage，可選持續傷害模式由 PlayerHealth 無敵節流）+ `Damageable.ts`（通用敵人 HP，介面對稱方便靶子測試 / 之後換成正式敵人）；Bullet 鴨子型別清單加 Damageable；統一 `takeDamage(damage, attacker?) → boolean` 介面，呼叫端不用知道對方 class
+- `2026-06-02` Phase 5 程式：新建 `assets/scripts/tutorial/` 四檔（`TutorialManager.ts` step machine + `TutorialHint.ts` Label/箭頭 prefab 元件 + `TutorialBeacon.ts` checkpoint/靶子訊號器 + `steps.ts` 5 步預設腳本）；事件詞彙加 `tutorial:beacon` / `tutorial:step-started` / `tutorial:step-completed` / `tutorial:completed`；step 完成判定統一走事件（player 既有 input:move/jumped/shot 或全域 beacon），呼應 Phase 1-4 架構不耦合
