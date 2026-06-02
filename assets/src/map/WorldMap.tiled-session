@@ -1,0 +1,73 @@
+{
+    "activeFile": "WorldMap.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
+        "ChatGPT Image1.tsx": {
+            "scaleInEditor": 1
+        },
+        "WorldMap.tmx": {
+            "scale": 1.2122395833333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 480.1031149301826,
+                "y": 319.656283566058
+            }
+        },
+        "bush1A.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "decorative_props.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "images.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "other_props.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tileset.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 0.0625
+        },
+        "water_env.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.externalTilesetPath": "C:/farmer_baby/map",
+    "last.imagePath": "C:/farmer_baby/map",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+        "bush1A.tsx",
+        "water_env.tsx",
+        "WorldMap.tmx",
+        "decorative_props.tsx"
+    ],
+    "project": "WorldMap.tiled-project",
+    "recentFiles": [
+        "ChatGPT Image1.tsx",
+        "images.tsx",
+        "decorative_props.tsx",
+        "bush1A.tsx",
+        "water_env.tsx",
+        "WorldMap.tmx",
+        "tileset.tsx",
+        "other_props.tsx"
+    ],
+    "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 32,
+        "width": 32
+    }
+}
