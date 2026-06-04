@@ -1,9 +1,9 @@
 {
   "__type__": "cc.AnimationClip",
-  "_name": "onion_attack",
+  "_name": "chili_attack",
   "_objFlags": 0,
   "_native": "",
-  "_duration": 1.0166666666666666,
+  "_duration": 0.7666666666666667,
   "sample": 60,
   "speed": 1,
   "wrapMode": 2,
@@ -12,27 +12,27 @@
       "cc.Sprite": {
         "spriteFrame": [
           {
-            "frame": 0.016666666666666666,
+            "frame": 0,
             "value": {
-              "__uuid__": "1ffd7bce-465a-4d5f-a98f-941cd5e5842d"
+              "__uuid__": "7d18ab6e-b827-4bf8-86b6-8f3c197d1de4"
             }
           },
           {
-            "frame": 0.3333333333333333,
+            "frame": 0.25,
             "value": {
-              "__uuid__": "2fbda361-ba16-4e2b-9636-10b5ee3b1404"
+              "__uuid__": "84bb3f3c-ee01-4fc4-a9ef-44ca0c079566"
             }
           },
           {
-            "frame": 0.6666666666666666,
+            "frame": 0.5,
             "value": {
-              "__uuid__": "baa5ac28-93c2-4d9a-be53-866692e487ea"
+              "__uuid__": "114363a8-eaf4-4795-935e-46c36bd6d58c"
             }
           },
           {
-            "frame": 1,
+            "frame": 0.75,
             "value": {
-              "__uuid__": "1ffd7bce-465a-4d5f-a98f-941cd5e5842d"
+              "__uuid__": "f34e2694-2df3-4d4d-8538-c70cc1ce4e59"
             }
           }
         ]

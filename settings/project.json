@@ -8,12 +8,53 @@
     "bullet"
   ],
   "collision-matrix": [
-    [true, true, true, true, true, false],
-    [true, true, null, true, null, true],
-    [true, false, true, true, null, true],
-    [true, true, true, true, null, true],
-    [true, false, false, false, false],
-    [false, true, true, true, false, false]
+    [
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    [
+      true,
+      true,
+      null,
+      true,
+      null,
+      true
+    ],
+    [
+      true,
+      false,
+      true,
+      true,
+      null,
+      true
+    ],
+    [
+      true,
+      true,
+      true,
+      true,
+      null,
+      true
+    ],
+    [
+      true,
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
   ],
   "excluded-modules": [
     "3D Physics/Builtin"
@@ -41,5 +82,5 @@
       "enable": false
     }
   },
-  "start-scene": "528740dc-2b5e-4ef6-ad11-8d564af19dcd"
+  "start-scene": "969a1a6f-9899-45f8-aa33-94b3ab997865"
 }
