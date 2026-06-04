@@ -290,8 +290,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -480.122,
-        -326.611,
+        -268.869,
+        -81.75,
         0,
         0,
         0,
@@ -787,6 +787,8 @@
     "attackDamage": 1,
     "detectDistance": 200,
     "attackDuration": 1,
+    "knockbackDuration": 0.5,
+    "knockbackSpeed": 150,
     "_id": "acx1hqrX5KPozjuOtO5s2p"
   },
   {
@@ -806,6 +808,12 @@
       },
       {
         "__uuid__": "8fd1456c-6314-4116-b3c0-66d2383e9279"
+      },
+      {
+        "__uuid__": "679cabba-5e14-49fe-8b8f-b17996f0a5ba"
+      },
+      {
+        "__uuid__": "98b08cf9-e535-41e5-8451-e2464c0959e0"
       }
     ],
     "playOnLoad": true,
