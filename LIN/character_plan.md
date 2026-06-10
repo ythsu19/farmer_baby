@@ -118,37 +118,56 @@
 
 - [x] **5-A-1** `TutorialHint.ts`：Label + 可選箭頭（每幀指向 anchor target）+ 淡入淡出
 - [x] **5-A-2** `TutorialBeacon.ts`：mode='contact' 或 'host-died'；觸發 → `cc.game.emit('tutorial:beacon', {id})`
-- [x] **5-A-3** `steps.ts`：5 步預設腳本（move / jump-spike-1 / double-jump-spike-2 / shoot / target-down）
+- [x] **5-A-3** `steps.ts`：5 步預設腳本（walk / jump / double-jump / spike / shoot）— 統一 beacon contact 觸發
 - [x] **5-A-4** `TutorialManager.ts`：step machine + 訂閱解訂閱 + 0.8s 完成延遲
 
 ### 5-B Cocos 部分
 
 - [ ] **5-B-1** 做 `TutorialHint.prefab`（Canvas 下：Background + Label + Arrow，掛 TutorialHint.ts）
-- [ ] **5-B-2** Tutorial.fire / Canvas 下加空節點 `TutorialManager`，掛 TutorialManager.ts
+- [ ] **5-B-2** Tutorial.fire 拉場景動線（左→右）：兩段障礙物 + Damager 尖刺 + 一隻擋路怪（Damageable）
+- [ ] **5-B-3** Tutorial.fire 拉 5 個 `Checkpoint_*` 空節點（每個都：Sensor PhysicsBoxCollider + Static RigidBody + TutorialBeacon mode='contact'）：
+  - `Checkpoint_Walk` （beaconId=`walk`）
+  - `Checkpoint_Jump` （擺在小障礙物**後方**，beaconId=`jump`）
+  - `Checkpoint_DoubleJump` （擺在超高障礙物**後方**，beaconId=`double-jump`）
+  - `Checkpoint_Spike` （擺在尖刺**後方**，beaconId=`spike`）
+  - `Checkpoint_Shoot` （擺在擋路怪**後方**，beaconId=`shoot`）
+- [ ] **5-B-4** Tutorial.fire / Canvas 下加空節點 `TutorialManager`，掛 TutorialManager.ts
   - [ ] Inspector：`Player Node` 拉 Player 節點
   - [ ] Inspector：`Hint` 拉 TutorialHint.prefab 的場景實例
-  - [ ] Inspector：`Arrow Target Ids` 與 `Arrow Target Nodes` 兩欄一一對應拉 spike-1 / spike-2 / target
-- [ ] **5-B-3** Tutorial.fire 拉地形：兩段尖刺 + 兩段平台（小刺、大刺）
-  - [ ] 尖刺節點掛 `Damager`（damage=20）— 沿用 Phase 4-B 設計
-- [ ] **5-B-4** 在小刺後方平台拉空節點 `Beacon_Spike1`（Sensor PhysicsBoxCollider + RigidBody Static + TutorialBeacon mode='contact' beaconId='spike-1'）
-- [ ] **5-B-5** 在大刺後方平台拉空節點 `Beacon_Spike2`（同上，beaconId='spike-2'）
-- [ ] **5-B-6** 在 Phase 4-B 已有的靶子節點再加 `TutorialBeacon` mode='host-died' beaconId='target'
-- [ ] **5-B-7** Play 測試：5 步逐一過、箭頭指對地方、紅靶打爆觸發最後一步
-- [ ] **5-B-8** 微調 hint 文字 / startDelay / nextStepDelay
+  - [ ] Inspector：`Arrow Target Ids` 與 `Arrow Target Nodes` 一一對應拉 5 個 Checkpoint
+- [ ] **5-B-5** Play 測試：5 步依序過、箭頭指對下一個 checkpoint、走過就推下一步
+- [ ] **5-B-6** 微調 hint 文字 / startDelay / nextStepDelay / 每個 checkpoint collider size
 
 **🛑 Commit point 5**：`feat(tutorial): 教學引導 step machine + Hint + Beacon`
+
+### 5-C 鏡頭跟隨（Phase 5 附帶 — 教學動線拉長需要鏡頭跟）
+
+- [x] **5-C-1** `assets/scripts/camera/CameraFollow.ts`：lateUpdate 平滑追 target.x；followY 預設 false；可選 offsetX / leftBound / rightBound
+- [ ] **5-C-2** Cocos：Main Camera 節點 Add `CameraFollow.ts`，Inspector 拉 `target=Player`；其餘預設先測
+- [ ] **5-C-3** Play 測試：左右走鏡頭跟、跳躍 y 不動、感覺自然
+- [ ] **5-C-4** 微調 `smoothTime`（手感）、可選設 `leftBound/rightBound` 限關卡邊界
+
+**🛑 Commit point 5-C**：`feat(camera): CameraFollow 橫向卷軸鏡頭`
 
 ---
 
 ## 教學腳本（Phase 5 已定，可改 `assets/scripts/tutorial/steps.ts`）
 
-| 步驟 | id | 提示文字 | 完成條件 | 箭頭目標 |
-|------|----|---------|----------|----------|
-| 1 | move | 按 A / D 走動 | `input:move`(dir≠0) × 5 | — |
-| 2 | jump-spike-1 | 按 Space 跳起來，跨過前方的尖刺 | beacon `spike-1` | spike-1 |
-| 3 | double-jump-spike-2 | 空中再按一次跳：雙跳跨更大的刺 | beacon `spike-2` | spike-2 |
-| 4 | shoot | 用滑鼠瞄準、按住左鍵射擊 | `shot` × 1 | — |
-| 5 | target-down | 打爆紅靶 | beacon `target`（host-died） | target |
+> 設計原則：全部 5 步統一用「玩家走過 Checkpoint Node」觸發 — 關卡設計者擺 Node 就能控節奏，最直覺。
+
+| 步驟 | id | 提示文字 | 完成條件 (Checkpoint Node 名稱建議) |
+|------|----|---------|---------------------------------------|
+| 1 | walk | 按 A / D 走動，往前進 | `Checkpoint_Walk`（beacon id=`walk`） |
+| 2 | jump | 按 Space / W 跳起來，跳過前方障礙物 | `Checkpoint_Jump`（beacon id=`jump`） |
+| 3 | double-jump | 連續按兩次跳躍 → 雙跳：試著跨越超高障礙物 | `Checkpoint_DoubleJump`（beacon id=`double-jump`） |
+| 4 | spike | 前方有尖刺，小心不要碰到 — 會受傷！ | `Checkpoint_Spike`（beacon id=`spike`，擺在刺另一邊） |
+| 5 | shoot | 按下滑鼠左鍵射擊，把擋路的怪射掉 | `Checkpoint_Shoot`（beacon id=`shoot`，擺在怪後方走道） |
+
+關卡布置動線：
+```
+[Spawn] → Checkpoint_Walk → 小障礙物 → Checkpoint_Jump → 超高障礙物 → Checkpoint_DoubleJump
+       → 尖刺(Damager) → Checkpoint_Spike → 擋路怪(Damageable) → Checkpoint_Shoot → 通關
+```
 
 ---
 
@@ -179,3 +198,5 @@
 - `2026-06-01` Phase 4-A 改寫成「滑鼠瞄準射擊」：射擊鍵改滑鼠左鍵（按住連射）、武器跟著滑鼠轉向（新 `WeaponAim.ts`，滑鼠在左翻 scaleY 讓槍管朝外）、子彈方向 = normalize(滑鼠 − 槍口)、`Bullet.init` 改收 `Vec2` 並隨方向旋轉視覺、Player 面向改由 WeaponAim 決定（依滑鼠 x 相對武器中心，含 8px 死區），Player.ts 移除速度判面向邏輯
 - `2026-06-02` Phase 4-B：新建 `PlayerHealth.ts`（HP / 0.8s 無敵 / 死亡 disable 移動射擊 / flashNode 透明度閃爍）+ `Damager.ts`（陷阱接觸 player → takeDamage，可選持續傷害模式由 PlayerHealth 無敵節流）+ `Damageable.ts`（通用敵人 HP，介面對稱方便靶子測試 / 之後換成正式敵人）；Bullet 鴨子型別清單加 Damageable；統一 `takeDamage(damage, attacker?) → boolean` 介面，呼叫端不用知道對方 class
 - `2026-06-02` Phase 5 程式：新建 `assets/scripts/tutorial/` 四檔（`TutorialManager.ts` step machine + `TutorialHint.ts` Label/箭頭 prefab 元件 + `TutorialBeacon.ts` checkpoint/靶子訊號器 + `steps.ts` 5 步預設腳本）；事件詞彙加 `tutorial:beacon` / `tutorial:step-started` / `tutorial:step-completed` / `tutorial:completed`；step 完成判定統一走事件（player 既有 input:move/jumped/shot 或全域 beacon），呼應 Phase 1-4 架構不耦合
+- `2026-06-02` Phase 5 教學腳本改版：5 步全部統一用「玩家走過 Checkpoint Node」觸發（walk/jump/double-jump/spike/shoot），改 `steps.ts`，程式不動；設計者擺 5 個 Checkpoint Node 在動線上就能控節奏 — 比混用 player event / host-died 直覺多了
+- `2026-06-02` Phase 5-C：新建 `assets/scripts/camera/CameraFollow.ts`（lateUpdate 指數衰減追 target.x、followY=false 跳躍不晃、可選 offsetX/leftBound/rightBound）；橫向卷軸需求，掛 Main Camera 即用
