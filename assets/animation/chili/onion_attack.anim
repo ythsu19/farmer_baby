@@ -1,0 +1,43 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "chili_attack",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.7666666666666667,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "7d18ab6e-b827-4bf8-86b6-8f3c197d1de4"
+            }
+          },
+          {
+            "frame": 0.25,
+            "value": {
+              "__uuid__": "84bb3f3c-ee01-4fc4-a9ef-44ca0c079566"
+            }
+          },
+          {
+            "frame": 0.5,
+            "value": {
+              "__uuid__": "114363a8-eaf4-4795-935e-46c36bd6d58c"
+            }
+          },
+          {
+            "frame": 0.75,
+            "value": {
+              "__uuid__": "f34e2694-2df3-4d4d-8538-c70cc1ce4e59"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
