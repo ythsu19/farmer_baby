@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "ChiliBullet",
+    "_name": "Player",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -30,23 +30,29 @@
       },
       {
         "__id__": 5
+      },
+      {
+        "__id__": 6
+      },
+      {
+        "__id__": 7
       }
     ],
     "_prefab": {
-      "__id__": 6
+      "__id__": 8
     },
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 247,
+      "g": 18,
+      "b": 18,
       "a": 255
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 111,
-      "height": 76
+      "width": 96,
+      "height": 121
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -57,8 +63,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        0,
-        0,
+        -0.122,
+        -6.611,
         0,
         0,
         0,
@@ -83,16 +89,48 @@
     "_id": ""
   },
   {
-    "__type__": "cc.RigidBody",
+    "__type__": "cc.Sprite",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "ddec1d90-c0a8-433e-a901-de099efcc82c"
+    },
+    "_type": 0,
+    "_sizeMode": 0,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.RigidBody",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": false,
     "_type": 2,
     "_allowSleep": true,
-    "_gravityScale": 0,
+    "_gravityScale": 1,
     "_linearDamping": 0,
     "_angularDamping": 0,
     "_linearVelocity": {
@@ -101,10 +139,10 @@
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": true,
-    "enabledContactListener": true,
+    "_fixedRotation": false,
+    "enabledContactListener": false,
     "bullet": false,
-    "awakeOnLoad": false,
+    "awakeOnLoad": true,
     "_id": ""
   },
   {
@@ -114,10 +152,10 @@
     "node": {
       "__id__": 1
     },
-    "_enabled": true,
+    "_enabled": false,
     "tag": 0,
     "_density": 1,
-    "_sensor": true,
+    "_sensor": false,
     "_friction": 0.2,
     "_restitution": 0,
     "body": null,
@@ -134,48 +172,59 @@
     "_id": ""
   },
   {
-    "__type__": "9cc5azs1CtM64SsS98e9tpD",
+    "__type__": "cc.Animation",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "speed": 150,
-    "damage": 1,
-    "lifeTime": 2,
+    "_defaultClip": null,
+    "_clips": [],
+    "playOnLoad": false,
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "8fa4eFt/KJG8oWmj+KqFHbN",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "81a2fd4f-dc83-464e-bc15-9d1c78f6661c"
+    "walkSpeed": 200,
+    "jumpForce": 650,
+    "maxJumpCount": 2,
+    "gravity": 1600,
+    "fallGravityScale": 2.5,
+    "coyoteTime": 0.12,
+    "jumpBufferTime": 0.1,
+    "dodgeDistance": 180,
+    "dodgeDuration": 0.22,
+    "dodgeCooldown": 1,
+    "groundY": -200,
+    "maxHp": 100,
+    "shootCooldown": 0.5,
+    "shootAnimDuration": 0.25,
+    "invincibleDuration": 1,
+    "hurtAnimDuration": 0.35,
+    "anim": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cfc94darctIgbafBaGR+v3o",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
     },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+    "_enabled": true,
+    "bulletPrefab": {
+      "__uuid__": "2394bcd9-7c09-46dc-bca9-174186d10c25"
     },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
+    "spawnOffsetX": 40,
+    "spawnOffsetY": 0,
+    "poolSize": 10,
     "_id": ""
   },
   {

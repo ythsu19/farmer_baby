@@ -1,4 +1,3 @@
-
 import OnionBullet from './OnionBullet';
 const { ccclass, property } = cc._decorator;
 
@@ -29,11 +28,9 @@ export default class Monster extends cc.Component {
     @property({ tooltip: '被擊退時的後退速度' })
     knockbackSpeed: number = 150;
 
-    // ★ 新增 1：引入子彈的預製體 (Prefab)
     @property({ type: cc.Prefab, tooltip: '要發射的子彈(催淚彈) Prefab' })
     bulletPrefab: cc.Prefab = null;
 
-    // ★ 新增 2：設定子彈生成的相對位置
     @property({ tooltip: '子彈生成的 X 軸偏移量 (離怪物多遠生成)' })
     bulletSpawnOffsetX: number = 40;
     
@@ -125,7 +122,7 @@ export default class Monster extends cc.Component {
         }
     }
 
-private startAttack() {
+    private startAttack() {
         if (this.isDead || this.isKnockedBack) return;
         
         this.isAttacking = true;
@@ -138,9 +135,7 @@ private startAttack() {
             this.anim.play('onion_attack');
         }
 
-        // ★ 新增 3：設定計時器，延遲發射子彈 (配合動畫動作)
         this.scheduleOnce(() => {
-            // 確保要發射時，怪物沒有死掉也沒有被擊退中斷
             if (!this.isDead && !this.isKnockedBack) {
                 this.fireBullet();
             }
@@ -153,27 +148,20 @@ private startAttack() {
         }, this.attackDuration);
     }
 
-    // ★ 新增 4：發射子彈的核心邏輯
     private fireBullet() {
         if (!this.bulletPrefab) {
             console.warn("未綁定子彈 Prefab！");
             return;
         }
 
-        // 1. 生成子彈實體
         let bulletNode = cc.instantiate(this.bulletPrefab);
-        
-        // 2. 將子彈設為怪物父節點的子節點 (通常是 Canvas 或某個場景節點)
-        // 注意：千萬不要把子彈設為怪物的子節點，否則怪物回頭子彈會跟著回頭！
         bulletNode.parent = this.node.parent;
 
-        // 3. 計算生成位置 (怪物當前位置 + 面朝方向的偏移量)
         let spawnX = this.node.x + (this.moveDirection * this.bulletSpawnOffsetX);
-        let spawnY = this.node.y; // 如果氣體是從嘴巴出來，可以在這裡微調 Y 軸 (例如 this.node.y + 10)
+        let spawnY = this.node.y; 
         bulletNode.setPosition(spawnX, spawnY);
 
-        // 4. 初始化子彈方向
-        let bulletScript = bulletNode.getComponent(OnionBullet); // 這裡不用加引號
+        let bulletScript = bulletNode.getComponent(OnionBullet); 
         if (bulletScript) {
             bulletScript.init(this.moveDirection);
         }
@@ -204,20 +192,22 @@ private startAttack() {
         if (otherNodeName === 'Bullet') {
             let bulletNode = otherCollider.node;
 
-            // ★ 計算世界座標，判斷擊退方向
             let bulletWorldPos = bulletNode.convertToWorldSpaceAR(cc.v2(0, 0));
             let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
             
             let knockbackDir = monsterWorldPos.x >= bulletWorldPos.x ? 1 : -1;
 
-            otherCollider.node.destroy(); 
+            // ★ 修改 1：延遲一幀銷毀子彈，保護物理引擎
+            this.scheduleOnce(() => {
+                if (bulletNode.isValid) {
+                    bulletNode.destroy(); 
+                }
+            }, 0);
             
-            // ★ 將方向參數帶入
             this.takeDamage(1, knockbackDir); 
         }
     }
 
-    // ★ 接收方向參數
     public takeDamage(damage: number, knockbackDir: number = 0) {
         if (this.isDead) return; 
 
@@ -227,22 +217,24 @@ private startAttack() {
         if (this.currentHealth <= 0) {
             this.die();
         } else {
-            // ★ 將方向參數傳入擊退函式
             this.playKnockback(knockbackDir);
         }
     }
 
-    // ★ 接收方向參數並套用物理表現
     private playKnockback(knockbackDir: number = 0) {
         if (this.isDead) return;
         
         this.isKnockedBack = true;
         this.isAttacking = false; 
 
-        if (this.rb) {
-            let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
-            this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
-        }
+        // ★ 修改 2：延遲一幀給予擊退速度，避開碰撞瞬間的速度鎖定
+        this.scheduleOnce(() => {
+            if (this.rb && !this.isDead) {
+                let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
+                // 若怪物的剛體摩擦力過大導致退不動，可以將這裡的 y 改為給一點微小的向上力 (如 50) 讓它微跳
+                this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
+            }
+        }, 0);
 
         if (this.anim) {
             this.anim.play('onion_knockback'); 
