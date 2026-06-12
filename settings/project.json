@@ -6,6 +6,8 @@
     "enemy",
     "item",
     "bullet",
+    "boss",
+    "bossatk",
     "wall"
   ],
   "collision-matrix": [
@@ -16,6 +18,8 @@
       true,
       true,
       false,
+      null,
+      true,
       true
     ],
     [
@@ -24,7 +28,10 @@
       null,
       true,
       null,
-      true
+      false,
+      null,
+      null,
+      false
     ],
     [
       true,
@@ -32,13 +39,19 @@
       true,
       true,
       null,
-      true
+      false,
+      null,
+      null,
+      false
     ],
     [
       true,
       true,
       true,
       true,
+      null,
+      true,
+      null,
       null,
       true
     ],
@@ -51,10 +64,20 @@
     ],
     [
       false,
-      true,
-      true,
+      false,
+      false,
       true,
       false,
+      false,
+      true
+    ],
+    [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
       false
     ],
     [
@@ -64,7 +87,19 @@
       false,
       false,
       false,
-      true
+      false,
+      false
+    ],
+    [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
     ]
   ],
   "excluded-modules": [

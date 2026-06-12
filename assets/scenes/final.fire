@@ -2408,7 +2408,7 @@
       "__id__": 5
     },
     "_enabled": true,
-    "maxHealth": 5000,
+    "maxHealth": 250,
     "attackDamage": 2,
     "attackHitBoxes": [
       {
@@ -2437,7 +2437,11 @@
       null
     ],
     "hatNode": null,
-    "hurtBoxes": [],
+    "hurtBoxes": [
+      {
+        "__id__": 6
+      }
+    ],
     "hatDamageMultiplier": 2,
     "attackSequence": [
       {
@@ -2451,7 +2455,9 @@
     "invincibilityDuration": 0,
     "destroyDelay": 1,
     "deathAnimName": "",
-    "hurtSfx": null,
+    "hurtSfx": {
+      "__uuid__": "a325f0f4-4351-4e51-b103-8422c58aac83"
+    },
     "deathSfx": null,
     "landSfx": null,
     "sfxVolume": 1,
