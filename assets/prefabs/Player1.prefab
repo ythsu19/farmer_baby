@@ -49,10 +49,13 @@
       },
       {
         "__id__": 15
+      },
+      {
+        "__id__": 16
       }
     ],
     "_prefab": {
-      "__id__": 16
+      "__id__": 17
     },
     "_opacity": 255,
     "_color": {
@@ -326,12 +329,13 @@
     "maxWalkSpeed": 240,
     "acceleration": 1800,
     "deceleration": 1400,
-    "jumpVelocity": 620,
+    "jumpVelocity": 700,
     "fallGravityMul": 0.8,
     "coyoteTime": 0.1,
     "jumpBuffer": 0.2,
     "enableDoubleJump": true,
     "groundNormalThreshold": -0.5,
+    "debugDrawPhysics": false,
     "_id": ""
   },
   {
@@ -507,6 +511,32 @@
     "flashHz": 10,
     "flashDimOpacity": 80,
     "disableOnDeath": false,
+    "_id": ""
+  },
+  {
+    "__type__": "44fe3a5RZRGKLmN14l4/G28",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "dashSpeed": 900,
+    "dashDuration": 0.18,
+    "cooldown": 0.6,
+    "ghostInterval": 0.025,
+    "ghostLifetime": 0.25,
+    "ghostStartOpacity": 160,
+    "ghostTint": {
+      "__type__": "cc.Color",
+      "r": 140,
+      "g": 200,
+      "b": 255,
+      "a": 255
+    },
+    "ghostSpriteSource": {
+      "__id__": 7
+    },
     "_id": ""
   },
   {

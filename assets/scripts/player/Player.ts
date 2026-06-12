@@ -74,6 +74,8 @@ export default class Player extends cc.Component {
     private _contacts: Map<cc.PhysicsCollider, boolean> = new Map();
     private _isGrounded = false;
     private _wasGrounded = false;
+    /** PlayerDash 通知中：dash 期間 Player.ts 不碰水平加速 / 重力 / 跳躍 buffer，交給 PlayerDash 全權控制 */
+    private _isDashing = false;
 
     // ──────────────────────────────────────────────
     //  SECTION 1：Lifecycle
@@ -94,20 +96,29 @@ export default class Player extends cc.Component {
         this.node.on('input:jump-down', this._onInputJump, this);
         // 面向由 WeaponAim 決定（跟著滑鼠），Player 只是被動接收同步內部狀態
         this.node.on('facing-changed', this._onFacingChanged, this);
+        // PlayerDash 控制衝刺期間的物理 — 收這兩個 event 讓自己讓位
+        this.node.on('dash:start', this._onDashStart, this);
+        this.node.on('dash:end', this._onDashEnd, this);
     }
 
     onDestroy() {
         this.node.off('input:move', this._onInputMove, this);
         this.node.off('input:jump-down', this._onInputJump, this);
         this.node.off('facing-changed', this._onFacingChanged, this);
+        this.node.off('dash:start', this._onDashStart, this);
+        this.node.off('dash:end', this._onDashEnd, this);
     }
 
     update(dt: number) {
         this._tickTimers(dt);
         this._refreshGrounded();
-        this._applyHorizontalVelocity(dt);
-        this._tryConsumeJumpBuffer();   // 先處理跳躍把 v.y 變正
-        this._adjustFallGravity();      // 再依新 v.y 決定 gravityScale，跳起來那一幀就不會被舊的下落重力刮
+        // dash 期間 PlayerDash 直接接管 linearVelocity / gravityScale，
+        // 這裡跳過自己的水平加速、跳躍 buffer、重力調整，避免兩個元件搶寫
+        if (!this._isDashing) {
+            this._applyHorizontalVelocity(dt);
+            this._tryConsumeJumpBuffer();   // 先處理跳躍把 v.y 變正
+            this._adjustFallGravity();      // 再依新 v.y 決定 gravityScale，跳起來那一幀就不會被舊的下落重力刮
+        }
         this._refreshState();
     }
 
@@ -126,6 +137,14 @@ export default class Player extends cc.Component {
     /** WeaponAim 依滑鼠位置決定面向；Player 同步內部狀態，讓 facingRight getter 仍可用 */
     private _onFacingChanged(faceRight: boolean) {
         this._facingRight = faceRight;
+    }
+
+    private _onDashStart() {
+        this._isDashing = true;
+    }
+
+    private _onDashEnd() {
+        this._isDashing = false;
     }
 
     // ──────────────────────────────────────────────

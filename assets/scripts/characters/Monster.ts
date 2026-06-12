@@ -1,4 +1,3 @@
-
 import OnionBullet from './OnionBullet';
 const { ccclass, property } = cc._decorator;
 
@@ -29,11 +28,9 @@ export default class Monster extends cc.Component {
     @property({ tooltip: '被擊退時的後退速度' })
     knockbackSpeed: number = 150;
 
-    // ★ 新增 1：引入子彈的預製體 (Prefab)
     @property({ type: cc.Prefab, tooltip: '要發射的子彈(催淚彈) Prefab' })
     bulletPrefab: cc.Prefab = null;
 
-    // ★ 新增 2：設定子彈生成的相對位置
     @property({ tooltip: '子彈生成的 X 軸偏移量 (離怪物多遠生成)' })
     bulletSpawnOffsetX: number = 40;
     
@@ -50,7 +47,7 @@ export default class Monster extends cc.Component {
     private isAttacking: boolean = false;
     private isDead: boolean = false; 
     private isKnockedBack: boolean = false; 
-    private playerNode: cc.Node = null;
+    private players: cc.Node[] = [];
 
     onLoad() {
         cc.director.getPhysicsManager().enabled = true;
@@ -66,9 +63,15 @@ export default class Monster extends cc.Component {
         
         this.startX = this.node.x;
 
-        this.playerNode = cc.find('Player') || cc.find('Canvas/Player');
-        if (!this.playerNode) {
-            console.warn("Monster 找不到 Player 節點，請確認玩家節點名稱是否為 'Player'");
+        // 分別尋找 Player1 和 Player2，並加入陣列中
+        let p1 = cc.find('Player1') || cc.find('Canvas/Player1');
+        let p2 = cc.find('Player2') || cc.find('Canvas/Player2');
+        
+        if (p1) this.players.push(p1);
+        if (p2) this.players.push(p2);
+
+        if (this.players.length === 0) {
+            console.warn("Monster 找不到 Player1 或 Player2，請確認節點名稱是否正確！");
         }
         
         if (this.anim && !this.isAttacking && !this.isDead && !this.isKnockedBack) {
@@ -104,20 +107,36 @@ export default class Monster extends cc.Component {
     }
 
     private checkPlayerInSight() {
-        if (!this.playerNode || this.isDead || this.isKnockedBack) return;
-
-        let dx = this.playerNode.x - this.node.x;
-        let dy = this.playerNode.y - this.node.y;
-
-        if (Math.abs(dy) > 50) return; 
+        if (this.players.length === 0 || this.isDead || this.isKnockedBack) return;
 
         let canSeePlayer = false;
-        
-        if (this.moveDirection === 1 && dx > 0 && dx <= this.detectDistance) {
-            canSeePlayer = true;
-        }
-        else if (this.moveDirection === -1 && dx < 0 && Math.abs(dx) <= this.detectDistance) {
-            canSeePlayer = true;
+
+        // 獲取怪物的世界座標
+        let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
+
+        // 用迴圈檢查每一個活著的玩家
+        for (let i = 0; i < this.players.length; i++) {
+            let player = this.players[i];
+            
+            if (!player || !player.isValid) continue;
+
+            // ★ 關鍵修復：將玩家座標也轉為世界座標，消除因父節點層級不同帶來的本地座標誤差
+            let playerWorldPos = player.convertToWorldSpaceAR(cc.v2(0, 0));
+
+            let dx = playerWorldPos.x - monsterWorldPos.x;
+            let dy = playerWorldPos.y - monsterWorldPos.y;
+
+            // 微調：稍微放大高度容錯（設為 80 像素），避免因新角色 Prefab 的圖片中心點（Anchor）設定不同導致高度判定失敗
+            if (Math.abs(dy) > 80) continue; 
+
+            if (this.moveDirection === 1 && dx > 0 && dx <= this.detectDistance) {
+                canSeePlayer = true;
+                break; 
+            }
+            else if (this.moveDirection === -1 && dx < 0 && Math.abs(dx) <= this.detectDistance) {
+                canSeePlayer = true;
+                break; 
+            }
         }
 
         if (canSeePlayer) {
@@ -125,7 +144,7 @@ export default class Monster extends cc.Component {
         }
     }
 
-private startAttack() {
+    private startAttack() {
         if (this.isDead || this.isKnockedBack) return;
         
         this.isAttacking = true;
@@ -138,9 +157,7 @@ private startAttack() {
             this.anim.play('onion_attack');
         }
 
-        // ★ 新增 3：設定計時器，延遲發射子彈 (配合動畫動作)
         this.scheduleOnce(() => {
-            // 確保要發射時，怪物沒有死掉也沒有被擊退中斷
             if (!this.isDead && !this.isKnockedBack) {
                 this.fireBullet();
             }
@@ -153,27 +170,20 @@ private startAttack() {
         }, this.attackDuration);
     }
 
-    // ★ 新增 4：發射子彈的核心邏輯
     private fireBullet() {
         if (!this.bulletPrefab) {
             console.warn("未綁定子彈 Prefab！");
             return;
         }
 
-        // 1. 生成子彈實體
         let bulletNode = cc.instantiate(this.bulletPrefab);
-        
-        // 2. 將子彈設為怪物父節點的子節點 (通常是 Canvas 或某個場景節點)
-        // 注意：千萬不要把子彈設為怪物的子節點，否則怪物回頭子彈會跟著回頭！
         bulletNode.parent = this.node.parent;
 
-        // 3. 計算生成位置 (怪物當前位置 + 面朝方向的偏移量)
         let spawnX = this.node.x + (this.moveDirection * this.bulletSpawnOffsetX);
-        let spawnY = this.node.y; // 如果氣體是從嘴巴出來，可以在這裡微調 Y 軸 (例如 this.node.y + 10)
+        let spawnY = this.node.y; 
         bulletNode.setPosition(spawnX, spawnY);
 
-        // 4. 初始化子彈方向
-        let bulletScript = bulletNode.getComponent(OnionBullet); // 這裡不用加引號
+        let bulletScript = bulletNode.getComponent(OnionBullet); 
         if (bulletScript) {
             bulletScript.init(this.moveDirection);
         }
@@ -197,27 +207,28 @@ private startAttack() {
             }
         }
 
-        if (otherNodeName === 'Player') {
+        if (otherNodeName === 'Player1' || otherNodeName === 'Player2') {
             console.log("碰到玩家實體！造成碰撞傷害：" + this.attackDamage);
         }
 
         if (otherNodeName === 'Bullet') {
             let bulletNode = otherCollider.node;
 
-            // ★ 計算世界座標，判斷擊退方向
             let bulletWorldPos = bulletNode.convertToWorldSpaceAR(cc.v2(0, 0));
             let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
             
             let knockbackDir = monsterWorldPos.x >= bulletWorldPos.x ? 1 : -1;
 
-            otherCollider.node.destroy(); 
+            this.scheduleOnce(() => {
+                if (bulletNode.isValid) {
+                    bulletNode.destroy(); 
+                }
+            }, 0);
             
-            // ★ 將方向參數帶入
             this.takeDamage(1, knockbackDir); 
         }
     }
 
-    // ★ 接收方向參數
     public takeDamage(damage: number, knockbackDir: number = 0) {
         if (this.isDead) return; 
 
@@ -227,22 +238,22 @@ private startAttack() {
         if (this.currentHealth <= 0) {
             this.die();
         } else {
-            // ★ 將方向參數傳入擊退函式
             this.playKnockback(knockbackDir);
         }
     }
 
-    // ★ 接收方向參數並套用物理表現
     private playKnockback(knockbackDir: number = 0) {
         if (this.isDead) return;
         
         this.isKnockedBack = true;
         this.isAttacking = false; 
 
-        if (this.rb) {
-            let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
-            this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
-        }
+        this.scheduleOnce(() => {
+            if (this.rb && !this.isDead) {
+                let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
+                this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
+            }
+        }, 0);
 
         if (this.anim) {
             this.anim.play('onion_knockback'); 

@@ -5,7 +5,10 @@
     "floor",
     "enemy",
     "item",
-    "bullet"
+    "bullet",
+    "boss",
+    "bossatk",
+    "wall"
   ],
   "collision-matrix": [
     [
@@ -14,29 +17,41 @@
       true,
       true,
       true,
+      false,
+      null,
+      true,
+      true
+    ],
+    [
+      true,
+      true,
+      null,
+      true,
+      null,
+      false,
+      null,
+      null,
+      false
+    ],
+    [
+      true,
+      false,
+      true,
+      true,
+      null,
+      false,
+      null,
+      null,
       false
     ],
     [
       true,
       true,
-      null,
-      true,
-      null,
-      true
-    ],
-    [
-      true,
-      false,
       true,
       true,
       null,
-      true
-    ],
-    [
       true,
-      true,
-      true,
-      true,
+      null,
       null,
       true
     ],
@@ -49,9 +64,40 @@
     ],
     [
       false,
+      false,
+      false,
       true,
+      false,
+      false,
+      true
+    ],
+    [
+      false,
+      false,
+      false,
+      false,
+      false,
       true,
+      false
+    ],
+    [
       true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
       false,
       false
     ]

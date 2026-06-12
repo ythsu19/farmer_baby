@@ -1,5 +1,5 @@
 {
-    "activeFile": "WorldMap.tmj",
+    "activeFile": "C:/farmer_baby/assets/src/map/WorldMap.tmx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
@@ -7,6 +7,58 @@
             "scaleInDock": 1
         },
         ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx": {
+            "scale": 1,
+            "selectedLayer": 5,
+            "viewCenter": {
+                "x": 1679,
+                "y": 860.5
+            }
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#bush1A": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#bush3B": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#decorative_props": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#mainlevbuild": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#other_props": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx#water_env": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx": {
+            "scale": 2,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1543.25,
+                "y": 1125.75
+            }
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#bush1A": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#bush3B": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#decorative_props": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#mainlevbuild": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#other_props": {
+            "scaleInDock": 1
+        },
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx#water_env": {
             "scaleInDock": 1
         },
         "ChatGPT Image1.tsx": {
@@ -87,29 +139,30 @@
     },
     "last.externalTilesetPath": "C:/farmer_baby/map",
     "last.imagePath": "C:/farmer_baby/map",
-    "map.lastUsedFormat": "json",
+    "map.lastUsedFormat": "tmx",
     "openFiles": [
         "bush1A.tsx",
         "water_env.tsx",
-        "WorldMap.tmj",
         "decorative_props.tsx",
         "mainlevbuild.tsx",
         "bush3B.tsx",
-        "other_props.tsx"
+        "other_props.tsx",
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx"
     ],
     "project": "WorldMap.tiled-project",
     "recentFiles": [
         "bush1A.tsx",
         "water_env.tsx",
-        "other_props.tsx",
-        "bush3B.tsx",
-        "mainlevbuild.tsx",
         "decorative_props.tsx",
+        "mainlevbuild.tsx",
+        "bush3B.tsx",
+        "other_props.tsx",
+        "C:/farmer_baby/assets/src/map/WorldMap.tmx",
+        "C:/farmer_baby/assets/src/map/WorldMap1.tmx",
         "WorldMap.tmj",
         "ChatGPT Image1.tsx",
         "images.tsx",
-        "WorldMap.tmx",
-        "tileset.tsx"
+        "WorldMap.tmx"
     ],
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",

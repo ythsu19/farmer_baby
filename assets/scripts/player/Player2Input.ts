@@ -9,11 +9,17 @@
 //   A / D       水平移動（不吃方向鍵 — 那組留給 P1）
 //   Space / W   跳（兩鍵等價）
 //   E           技能（觸發 Player2Combat 的 5 連發追蹤子彈）
+//   Left Shift  衝刺（dash）
 //
 // 事件（發在 this.node 上，前兩個跟 PlayerInput 同詞彙）：
 //   input:move          { dir: -1|0|1 }   — 水平方向意圖改變（edge-driven）
 //   input:jump-down                       — 按 Space 或 W 那一瞬間
 //   input:skill-down                      — 按 E 那一瞬間（P2 專用）
+//   input:dash-down                       — 按 Left Shift 那一瞬間（PlayerDash 監聽）
+//
+// 為什麼 Left Shift 要走 DOM keydown 不走 cc.systemEvent？
+//   cc.Event.EventKeyboard 只暴露 keyCode；左右 Shift 都是 16，無法區分。
+//   DOM KeyboardEvent.code === 'ShiftLeft' 才能精準只認左邊那顆，避免 P1 P2 dash 互相觸發。
 //
 // 詞彙跟 PlayerInput 對齊 → Player.ts 不用改就能吃 P2 的移動 / 跳；
 // Player2Combat 監聽新的 input:skill-down 觸發技能。
@@ -29,13 +35,31 @@ export default class Player2Input extends cc.Component {
     onLoad() {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
+        // Left Shift dash — window 級 + capture phase，比 Cocos 自己的 keyboard listener 先攔
+        window.addEventListener('keydown', this._onDomKeyDown, true);
     }
 
     onDestroy() {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
+        window.removeEventListener('keydown', this._onDomKeyDown, true);
         this._keys.clear();
     }
+
+    // 雙 fallback：e.code === 'ShiftLeft' 或 e.location === 1（DOM_KEY_LOCATION_LEFT）
+    // — 任一成立就算左 Shift，因為某些 Cocos 內嵌瀏覽器 e.code 可能空字串。
+    private _onDomKeyDown = (e: KeyboardEvent) => {
+        if (e.repeat) return;
+        if (e.keyCode !== 16) return;
+        const isLeft = e.code === 'ShiftLeft' || e.location === 1;
+        if (!isLeft) return;
+        if (!this._loggedDash) {
+            this._loggedDash = true;
+            cc.log('[Player2Input] Left Shift dash fired — code=', e.code, 'location=', e.location);
+        }
+        this.node.emit('input:dash-down');
+    };
+    private _loggedDash = false;
 
     private _onKeyDown(e: cc.Event.EventKeyboard) {
         const isRepeat = this._keys.has(e.keyCode);
