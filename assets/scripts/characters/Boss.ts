@@ -42,6 +42,13 @@ class BossMove {
 
     @property({ tooltip: '（保留欄位，目前攻擊判定改由 BossAnimator 的 hitWindows 控制，此欄不影響）' })
     hasAttack: boolean = true;
+
+    @property({
+        type: cc.AudioClip,
+        tooltip: '這招出招瞬間播的音效（揮砍招拖揮砍聲、跳躍招拖起跳聲）。\n' +
+            '留空 → 這招出招不播音效。每招各自獨立，互不影響。'
+    })
+    moveSfx: cc.AudioClip = null!;
 }
 
 @ccclass
@@ -96,6 +103,19 @@ export default class Boss extends cc.Component {
     @property({ tooltip: '死亡動畫 clip 名稱（留空 → 不播）' })
     deathAnimName: string = '';
 
+    // ───────── 音效（在 Creator 編輯器把音效檔拖進來，留空 → 不播）─────────
+    @property({ type: cc.AudioClip, tooltip: '受傷音效：被子彈打到扣血時播放（留空 → 不播）' })
+    hurtSfx: cc.AudioClip = null!;
+
+    @property({ type: cc.AudioClip, tooltip: '死亡音效：血量歸零死亡時播放（留空 → 不播）' })
+    deathSfx: cc.AudioClip = null!;
+
+    @property({ type: cc.AudioClip, tooltip: '落地音效：跳躍落地震動時播放（留空 → 不播）' })
+    landSfx: cc.AudioClip = null!;
+
+    @property({ tooltip: '音效音量 (0~1)' })
+    sfxVolume: number = 1;
+
 
     private _currentHealth: number = 0;
     private _animator: any = null;   // BossAnimator（逐幀貼圖）
@@ -109,13 +129,30 @@ export default class Boss extends cc.Component {
     /** ScytheHitBox 讀這個值當預設傷害 */
     get scytheDamage(): number { return this.attackDamage; }
 
+    /** 播一次音效（clip 沒設就跳過）。play 的第三參數直接指定這顆的音量，不動全域音效音量 */
+    private _playSfx(clip: cc.AudioClip) {
+        if (!clip) return;
+        cc.audioEngine.play(clip, false, this.sfxVolume);
+    }
+
     onLoad() {
         cc.director.getPhysicsManager().enabled = true;
         this._currentHealth = this.maxHealth;
         this._animator = this.getComponent('BossAnimator');
 
+        // 落地音效：BossAnimator 落地震動時會 emit 'boss-landed'，這裡接它播音效
+        this.node.on('boss-landed', this._onLanded, this);
+
         // 保險：一開始把所有攻擊箱關閉
         this.disableHit();
+    }
+
+    onDestroy() {
+        this.node.off('boss-landed', this._onLanded, this);
+    }
+
+    private _onLanded() {
+        this._playSfx(this.landSfx);
     }
 
     start() {
@@ -144,6 +181,10 @@ export default class Boss extends cc.Component {
         if (this._animator && move.animName) {
             this._animator.playMove(move.animName);
         }
+
+        // 出招音效：每出一招播一次它「自己」的音效（揮砍招播揮砍聲、跳躍招播起跳聲）。
+        // 不綁在 enableHit 是因為動畫循環/逐幀會反覆觸發 → 音效會一直重播。
+        this._playSfx(move.moveSfx);
 
         // 這招結束後換下一招
         this.scheduleOnce(() => {
@@ -233,7 +274,12 @@ export default class Boss extends cc.Component {
         this.node.emit('hurt', { damage, attacker: attacker || null });
         this.node.emit('hp-changed', { hp: this._currentHealth, maxHp: this.maxHealth, delta: -damage });
 
-        if (this._currentHealth <= 0) this._die();
+        // 還沒死才播受傷音效；歸零交給 _die 播死亡音效（避免同一下同時兩種音效）
+        if (this._currentHealth <= 0) {
+            this._die();
+        } else {
+            this._playSfx(this.hurtSfx);
+        }
         return true;
     }
 
@@ -243,6 +289,8 @@ export default class Boss extends cc.Component {
 
         this.unscheduleAllCallbacks();   // 停掉招式循環
         this.disableHit();
+
+        this._playSfx(this.deathSfx);
 
         this.node.emit('died');
 
