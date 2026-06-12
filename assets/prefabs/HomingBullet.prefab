@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Bullet",
+    "_name": "HomingBullet",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -67,8 +67,8 @@
         0,
         0,
         1,
-        0.5,
-        0.5,
+        1,
+        1,
         1
       ]
     },
@@ -101,7 +101,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "0defd7b0-38b4-4235-932c-35f8dff20313"
+      "__uuid__": "d26579ef-f3eb-45f5-98da-14e3af4d3a41"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -146,7 +146,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "_type": 2,
+    "_type": 1,
     "_allowSleep": true,
     "_gravityScale": 0,
     "_linearDamping": 0,
@@ -190,16 +190,19 @@
     "_id": ""
   },
   {
-    "__type__": "d6bda1f1hNIPYOtHsKXgzBD",
+    "__type__": "8090ftnjqxJoZtLrYeHrQd5",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "speed": 800,
-    "damage": 20,
-    "lifetime": 1.5,
+    "speed": 300,
+    "damage": 25,
+    "lifetime": 3.5,
+    "homingDelay": 0.1,
+    "turnRate": 300,
+    "detectRange": 1000,
     "_id": ""
   },
   {
