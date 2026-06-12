@@ -1,7 +1,8 @@
 // BossBodyHurtBox — Boss 身體受擊箱（被玩家子彈打到）
 //
 // 掛在 boss 底下的 bodyHurtBox 子節點上。
-// 該節點需有 PhysicsBoxCollider（勾 Is Sensor），group 設為 enemy。
+// 該節點需有一個物理碰撞器（PhysicsPolygonCollider 多邊形 / 或 PhysicsBoxCollider，
+// 都勾 Is Sensor），group 設為 enemy。身體輪廓不規則可用多邊形貼合。
 //
 // 子彈(Bullet.ts)撞到會找對方的 takeDamage(damage, attacker) 介面。
 // 因為受擊箱是「子節點」而不是根節點，子彈撞到的是這個子節點，
@@ -11,10 +12,11 @@
 //   因為帽子是獨立弱點（另一個子節點），身體與帽子要分開判定，
 //   各自一個 collider 子節點才能用不同倍率扣血。
 
-const { ccclass, requireComponent } = cc._decorator;
+// （不用 @requireComponent 限定碰撞器型別 → box / polygon 都能掛。）
+
+const { ccclass } = cc._decorator;
 
 @ccclass
-@requireComponent(cc.PhysicsBoxCollider)
 export default class BossBodyHurtBox extends cc.Component {
 
     private _boss: any = null;

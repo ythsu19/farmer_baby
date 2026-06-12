@@ -1,17 +1,19 @@
 // BossHatWeakPoint — 帽子弱點受擊箱（被玩家子彈打到，雙倍傷害）
 //
 // 掛在 boss 底下的 hat 子節點上（帽子那張圖）。
-// 該節點需有 PhysicsBoxCollider（勾 Is Sensor），group 設為 enemy。
+// 該節點需有一個物理碰撞器（PhysicsPolygonCollider 多邊形 / 或 PhysicsBoxCollider，
+// 都勾 Is Sensor），group 設為 enemy。帽子形狀不規則可用多邊形貼合。
 //
 // 與 BossBodyHurtBox 唯一的差別：呼叫 applyDamage 時 fromHat=true，
 // 由 Boss 套用 hatDamageMultiplier 倍率（弱點 → 扣更多血）。
 //
 // 受擊箱（這個 + 身體）與攻擊箱（ScytheHitBox）是完全分開的節點與 collider。
+//
+// （不用 @requireComponent 限定碰撞器型別 → box / polygon 都能掛。）
 
-const { ccclass, requireComponent } = cc._decorator;
+const { ccclass } = cc._decorator;
 
 @ccclass
-@requireComponent(cc.PhysicsBoxCollider)
 export default class BossHatWeakPoint extends cc.Component {
 
     private _boss: any = null;
