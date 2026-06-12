@@ -141,7 +141,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "speed": 250,
+    "speed": 150,
     "damage": 1,
     "lifeTime": 2,
     "_id": ""
