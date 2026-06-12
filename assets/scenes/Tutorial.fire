@@ -82,7 +82,7 @@
     "_groupIndex": 0,
     "groupIndex": 0,
     "autoReleaseAssets": false,
-    "_id": "2382a762-92e2-4d10-af4c-2acacfa32508"
+    "_id": "aed51db9-2633-4c4f-874e-014eacba14b1"
   },
   {
     "__type__": "cc.Node",
@@ -642,10 +642,6 @@
       "__id__": 6
     },
     "_enabled": true,
-    "playerNodeForDebug": {
-      "__id__": 6
-    },
-    "debugAim": false,
     "_id": "203jTuGllOxrBiEVj6LskM"
   },
   {
@@ -733,7 +729,6 @@
     },
     "fireCooldown": 0.18,
     "poolSize": 16,
-    "debugFire": false,
     "_id": "4bJLOexQJI/4SABWn7rnuf"
   },
   {
@@ -748,7 +743,6 @@
       "__id__": 7
     },
     "facingDeadzone": 8,
-    "debugAim": false,
     "_id": "0dlKr+yhZDoInHuybEc0CX"
   },
   {
@@ -1273,9 +1267,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "03274bf4-82fc-4caf-b03c-5cb80b5713a9"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 1,
     "_fillType": 0,
