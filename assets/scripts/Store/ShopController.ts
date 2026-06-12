@@ -12,23 +12,24 @@ export default class ShopController extends cc.Component {
     @property(cc.Label)
     descLabel: cc.Label = null;
     
-    // 新增：用來顯示玩家目前擁有多少錢的 Label
+    // 用來顯示玩家目前擁有多少錢的 Label
     @property(cc.Label)
     moneyLabel: cc.Label = null; 
     
     @property(cc.Node)
     itemsContainer: cc.Node = null; 
 
-    // 新增：模擬玩家身上的初始金幣數量 (這裡先設定 100 元測試)
+    // 模擬玩家身上的初始金幣數量 (這裡先設定 100 元測試)
     private playerMoney: number = 100; 
 
+    // === 已經替換為你的 6 個新商品 ===
     private itemDatas = [
-        { name: "魔力藥劑", price: 30, desc: "散發著奇異光芒的藥劑，可恢復少許魔力。" },
-        { name: "生命藥水", price: 20, desc: "甘甜的紅色藥水，飲用後可恢復 50 點生命值。" },
-        { name: "加速靴", price: 120, desc: "裝備後增加 15% 移動速度，讓你靈活穿梭於戰場。" },
-        { name: "勇者之盾", price: 150, desc: "堅固的盾牌，舉起時可格擋前方的飛行物與近戰傷害。" },
-        { name: "爆裂炸彈", price: 50, desc: "威力強大的炸彈，能造成範圍傷害。" },
-        { name: "力量長劍", price: 200, desc: "鍛造精良的長劍，能大幅提升你的基礎攻擊力。" },
+        { name: "速度強化", price: 30, desc: "注射後能讓雙腿變得輕盈，永久提升移動速度。" },
+        { name: "攻擊力提升", price: 50, desc: "經過特殊打磨的武器強化組件，能造成更大傷害。" },
+        { name: "跳躍高度增加", price: 40, desc: "神秘的彈簧靴配件，讓你能夠跳過更高的障礙物。" },
+        { name: "語音包 A", price: 100, desc: "解鎖專屬的嘲諷與戰鬥語音包 A 組合。" },
+        { name: "語音包 B", price: 100, desc: "解鎖充滿魔性的搞笑互動語音包 B 組合。" },
+        { name: "語音包 C", price: 150, desc: "解鎖史詩級的隱藏劇情配音與特效語音包 C 組合。" },
     ];
 
     private currentIndex: number = 0; 
@@ -53,7 +54,7 @@ export default class ShopController extends cc.Component {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     }
 
-    // 新增：更新畫面上玩家金幣數量的顯示
+    // 更新畫面上玩家金幣數量的顯示
     updateMoneyDisplay () {
         if (this.moneyLabel) {
             this.moneyLabel.string = `$ ${this.playerMoney}`;
@@ -71,7 +72,7 @@ export default class ShopController extends cc.Component {
             if (this.currentIndex >= this.itemDatas.length) this.currentIndex = 0; 
             this.updateBoard(this.currentIndex);
         }
-        // 新增：按下 Enter 鍵或空白鍵購買商品
+        // 按下 Enter 鍵或空白鍵購買商品
         else if (event.keyCode === cc.macro.KEY.enter || event.keyCode === cc.macro.KEY.space) {
             this.buyCurrentItem();
         }
@@ -83,12 +84,12 @@ export default class ShopController extends cc.Component {
         this.updateBoard(this.currentIndex);
     }
 
-    // 新增：如果你想在畫面上做一顆「購買按鈕」給滑鼠點，可以綁定這個 function
+    // 如果你想在畫面上做一顆「購買按鈕」給滑鼠點，可以綁定這個 function
     onBuyButtonClicked () {
         this.buyCurrentItem();
     }
 
-    // 新增：核心購買扣錢邏輯
+    // 核心購買扣錢邏輯
     buyCurrentItem () {
         const currentItem = this.itemDatas[this.currentIndex];
 
@@ -98,6 +99,7 @@ export default class ShopController extends cc.Component {
             this.playerMoney -= currentItem.price;
             this.updateMoneyDisplay();
             this.updateBoard(this.currentIndex); 
+            cc.log(`成功購買：${currentItem.name}`);
         } else {
             // 錢不夠：可以在這裡加入音效或畫面震動提示
             cc.log("金幣不足，無法購買！");
@@ -110,11 +112,11 @@ export default class ShopController extends cc.Component {
         this.priceLabel.string = `$ ${data.price}`;
         this.descLabel.string = data.desc;
 
-        // === 新增：判斷錢不夠時標價變紅色 ===
+        // === 判斷錢不夠時標價變紅色 ===
         if (this.playerMoney < data.price) {
             this.priceLabel.node.color = cc.Color.RED; // 錢不夠變紅字
         } else {
-            this.priceLabel.node.color = cc.Color.WHITE; // 錢夠恢復白字 (如果是其他顏色可改成 new cc.Color(R, G, B))
+            this.priceLabel.node.color = cc.Color.WHITE; // 錢夠恢復白字
         }
 
         for (let i = 0; i < this.itemsContainer.children.length; i++) {
