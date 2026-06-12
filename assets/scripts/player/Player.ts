@@ -12,6 +12,8 @@
 //
 // SECTION 標記為未來抽元件的邊界（PlayerMovement、PlayerStateMachine）。
 
+import { GameStore } from '../Store/GameStore';
+
 const { ccclass, property, requireComponent } = cc._decorator;
 
 export enum PlayerState {
@@ -90,6 +92,12 @@ export default class Player extends cc.Component {
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.fixedRotation = true;
         this._rb.enabledContactListener = true;  // 不開的話 onBeginContact 不會觸發
+
+        // 套用商店「速度強化」/「跳躍高度增加」累積加成（GameStore 全域單例，跨場景 / 跨關卡都有效）。
+        // 在這裡乘一次就好 — onLoad 場景重載才會跑，prefab 序列化值不會被改壞。
+        // NodePool 不影響 Player：Player 不會進池。
+        this.maxWalkSpeed *= GameStore.speedMul;
+        this.jumpVelocity *= GameStore.jumpMul;
 
         // 訂閱 PlayerInput 在同節點上發的事件。沒掛 PlayerInput 也不會錯，只是不會動。
         this.node.on('input:move', this._onInputMove, this);

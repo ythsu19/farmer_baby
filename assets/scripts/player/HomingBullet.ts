@@ -17,6 +17,8 @@
 //   行為差異太大（追蹤狀態機 + 目標管理）— 把 if 寫進 Bullet 會讓兩種子彈都變難讀。
 //   獨立檔案，pool / takeDamage 邏輯複製即可。
 
+import { GameStore } from '../Store/GameStore';
+
 const { ccclass, property, requireComponent } = cc._decorator;
 
 @ccclass
@@ -53,6 +55,10 @@ export default class HomingBullet extends cc.Component {
     onLoad() {
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.enabledContactListener = true;
+
+        // 套用商店「攻擊力提升」加成（跟 Bullet.ts 同模式）。
+        // onLoad 在節點 instantiate 那一次跑，NodePool 取出再放回不會重跑 → 只乘一次。
+        this.damage *= GameStore.damageMul;
     }
 
     /**
@@ -137,12 +143,15 @@ export default class HomingBullet extends cc.Component {
         const group = other.node.group;
         if (group === 'player' || group === 'bullet') return;  // 不打玩家、不打別的子彈
 
-        // 傷害介面跟 Bullet.ts 一致 — 對 Monster / EnemyBase / BossWeakPoint / BossMinion / 一般 Damageable 都有效
+        // 傷害介面跟 Bullet.ts 一致 — Monster / EnemyBase / 各種 Boss 受擊元件都有效
         const target: any = other.getComponent('Damageable')
             || other.getComponent('Monster')
             || other.getComponent('EnemyBase')
             || other.getComponent('BossWeakPoint')
-            || other.getComponent('BossMinion');
+            || other.getComponent('BossMinion')
+            || other.getComponent('Boss')
+            || other.getComponent('BossBodyHurtBox')
+            || other.getComponent('BossHatWeakPoint');
         if (target && typeof target.takeDamage === 'function') {
             target.takeDamage(this.damage, this.node);
         }
@@ -192,7 +201,10 @@ export default class HomingBullet extends cc.Component {
         return !!(n.getComponent('Monster')
             || n.getComponent('EnemyBase')
             || n.getComponent('BossWeakPoint')
-            || n.getComponent('BossMinion'));
+            || n.getComponent('BossMinion')
+            || n.getComponent('Boss')
+            || n.getComponent('BossBodyHurtBox')
+            || n.getComponent('BossHatWeakPoint'));
     }
 
     private _recycle() {
