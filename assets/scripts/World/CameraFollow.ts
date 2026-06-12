@@ -6,6 +6,9 @@ export default class CameraFollow extends cc.Component {
     @property(cc.Node)
     target: cc.Node = null;
 
+    @property(cc.Node)
+    uiCanvas: cc.Node = null;
+
     lateUpdate(dt: number) {
         if (!this.target) {
             cc.log("[CameraFollow] target is null");
@@ -19,6 +22,12 @@ export default class CameraFollow extends cc.Component {
         const cameraParent = this.node.parent;
         const localPos = cameraParent.convertToNodeSpaceAR(worldPos);
 
+        // Camera 跟著 Player
         this.node.setPosition(localPos.x, localPos.y);
+
+        // Canvas 跟著 Camera
+        if (this.uiCanvas) {
+            this.uiCanvas.setPosition(localPos.x, localPos.y);
+        }
     }
 }
