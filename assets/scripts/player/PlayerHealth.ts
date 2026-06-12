@@ -41,11 +41,11 @@ export default class PlayerHealth extends cc.Component {
     @property({ displayName: '死亡時關閉移動/輸入/射擊', tooltip: '勾起 → 死亡後 Player/PlayerInput/PlayerCombat 都被 disable' })
     disableOnDeath: boolean = true;
 
-    get hp(): number { return this._hp; }
+    get hp(): number { return this._hp < 0 ? this.maxHp : this._hp; }
     get isDead(): boolean { return this._dead; }
     get isInvincible(): boolean { return this._invincibleTimer > 0; }
 
-    private _hp: number = 0;
+    private _hp: number = -1;
     private _invincibleTimer: number = 0;
     private _flashAccum: number = 0;
     private _flashOn: boolean = true;

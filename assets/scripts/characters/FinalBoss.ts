@@ -7,10 +7,54 @@ export enum BossPhase {
     Defeated = 4,
 }
 
-enum AttackType {
-    ScytheSweep = 0,
-    JumpSlam = 1,
-    RakeStab = 2,
+// =================================================================
+// 攻擊定義（資料驅動）
+// -----------------------------------------------------------------
+// 每一種攻擊 = 一筆 AttackDef，在編輯器 Inspector 填好即可。
+// 未來新增攻擊：在 attacks 陣列加一筆、拖一個 hitbox 子節點，不用改程式碼。
+//
+// 流程（playAttack 統一處理）：
+//   1) 在 bossSprite 上播放 clipName 這支動畫
+//   2) 動畫播到「砍到位」時開 hitbox（並把它移到 hitMove 位置）
+//      —— 觸發點來源優先序：
+//         (a) 動畫事件幀呼叫 onHitboxOn / onHitboxOff（最精準，推薦）
+//         (b) 沒加事件幀時，用 hitOnTime / hitOffTime 秒數 fallback
+//   3) duration 秒後攻擊結束，hitbox 關回去
+// =================================================================
+@ccclass('BossAttackDef')
+export class BossAttackDef {
+    @property({ tooltip: "攻擊名稱（除錯用，例如 鐮刀橫掃）" })
+    name: string = "attack";
+
+    @property({ tooltip: "要播放的動畫 clip 名稱（Animation 元件 Clips 裡的名字，例如 boss_scythe）" })
+    clipName: string = "";
+
+    @property({ type: cc.Node, tooltip: "這個攻擊的傷害判定 hitbox 子節點（含 Damager + Collider；平常 active=false）" })
+    hitbox: cc.Node = null;
+
+    @property({ tooltip: "整個攻擊動作持續時間（秒）；結束後 boss 可再行動" })
+    duration: number = 0.8;
+
+    @property({ tooltip: "【fallback】開 hitbox 的時間點（秒，動畫開始後）。若有用動畫事件幀則忽略" })
+    hitOnTime: number = 0.3;
+
+    @property({ tooltip: "【fallback】關 hitbox 的時間點（秒，動畫開始後）。若有用動畫事件幀則忽略" })
+    hitOffTime: number = 0.55;
+
+    @property({ tooltip: "砍到位時 hitbox 相對 boss 朝向的 X 偏移（鐮刀掃出去的位置；會依面向自動鏡射）" })
+    hitOffsetX: number = 120;
+
+    @property({ tooltip: "砍到位時 hitbox 的 Y 偏移" })
+    hitOffsetY: number = 0;
+
+    @property({ tooltip: "冷卻時間（秒）；此攻擊用完後要等這麼久才能再用" })
+    cooldown: number = 3.0;
+
+    @property({ type: cc.Integer, tooltip: "解鎖階段：1=一開始就能用、2=階段2解鎖、3=階段3解鎖" })
+    unlockPhase: number = 1;
+
+    @property({ tooltip: "選這招的權重（越大越常選；同階段可用的招之間做加權隨機）" })
+    weight: number = 1;
 }
 
 @ccclass
@@ -41,6 +85,18 @@ export default class FinalBoss extends cc.Component {
     otherWeakPoints: cc.Node[] = [];
 
     // -----------------------------------------
+    // 視覺 / 動畫
+    // -----------------------------------------
+    @property({ type: cc.Animation, tooltip: "播放 boss frame 動畫的 Animation 元件（在 bossSprite 子節點上）" })
+    anim: cc.Animation = null;
+
+    @property({ tooltip: "待機動畫 clip 名稱（沒攻擊時循環播；留空 → 不播待機）" })
+    idleClipName: string = "";
+
+    @property({ type: cc.Node, tooltip: "決定面向的 Sprite 節點（攻擊時依玩家方向做 scaleX 鏡射；通常就是 bossSprite）" })
+    facingNode: cc.Node = null;
+
+    // -----------------------------------------
     // 場景參考
     // -----------------------------------------
     @property({ type: cc.Node, tooltip: "玩家節點（用來追蹤位置）" })
@@ -49,26 +105,17 @@ export default class FinalBoss extends cc.Component {
     @property({ type: cc.Node, tooltip: "攝影機節點（用於 Camera Shake；可為 Canvas 或 Camera 節點）" })
     cameraNode: cc.Node = null!;
 
-    @property({ type: cc.Node, tooltip: "攻擊物 / 召喚物的父節點（戰場層，不是 Boss 自己）" })
+    @property({ type: cc.Node, tooltip: "召喚物的父節點（戰場層，不是 Boss 自己）" })
     attackLayer: cc.Node = null;
 
     @property({ type: cc.Label, tooltip: "顯示 Boss 血量的 Label（例如 850/1000；可選）" })
     hpLabel: cc.Label = null;
 
     // -----------------------------------------
-    // 攻擊 Prefab
+    // 攻擊清單（資料驅動）—— 新增攻擊就在這加一筆
     // -----------------------------------------
-    @property({ type: cc.Prefab, tooltip: "鐮刀橫掃 Prefab（含碰撞器）" })
-    scythePrefab: cc.Prefab = null!;
-
-    @property({ type: cc.Prefab, tooltip: "耙子下戳 Prefab（含碰撞器）" })
-    rakePrefab: cc.Prefab = null!;
-
-    @property({ type: cc.Prefab, tooltip: "跳躍墜落落地衝擊波 Prefab（可選）" })
-    slamShockPrefab: cc.Prefab = null;
-
-    @property({ type: cc.Prefab, tooltip: "召喚小怪 Prefab（階段2/3 使用）" })
-    minionPrefab: cc.Prefab = null;
+    @property({ type: [BossAttackDef], tooltip: "所有攻擊招式；每招拖一個 hitbox 子節點、設動畫名與解鎖階段" })
+    attacks: BossAttackDef[] = [];
 
     // -----------------------------------------
     // 移動（隨機漂移，不追玩家）
@@ -104,76 +151,22 @@ export default class FinalBoss extends cc.Component {
     phase3IntervalScale: number = 0.6;
 
     // -----------------------------------------
-    // 鐮刀揮舞（以 Boss 手臂為軸心轉一個弧）
-    // -----------------------------------------
-    @property({ type: cc.Float, tooltip: "鐮刀揮舞持續時間（秒）" })
-    scytheSweepDuration: number = 0.6;
-
-    @property({ type: cc.Float, tooltip: "鐮刀的軸心相對 Boss 的位置（手臂位置）X 偏移" })
-    scythePivotOffsetX: number = 60;
-
-    @property({ type: cc.Float, tooltip: "鐮刀的軸心相對 Boss 的位置（手臂位置）Y 偏移" })
-    scythePivotOffsetY: number = 80;
-
-    @property({ type: cc.Float, tooltip: "鐮刀揮舞的起始角度（度，舉高）" })
-    scytheStartAngle: number = 120;
-
-    @property({ type: cc.Float, tooltip: "鐮刀揮舞的結束角度（度，砸到下方）" })
-    scytheEndAngle: number = -30;
-
-    @property({ type: cc.Float, tooltip: "鐮刀離軸心的距離（刀身長度，像素）" })
-    scytheRadius: number = 220;
-
-    @property({ type: cc.Float, tooltip: "鐮刀冷卻（秒，獨立於 attackInterval 的下限）" })
-    scytheCooldown: number = 4.0;
-
-    // -----------------------------------------
-    // 跳躍墜落
-    // -----------------------------------------
-    @property({ type: cc.Float, tooltip: "跳起所需時間（秒，往上消失到畫面外）" })
-    jumpUpDuration: number = 0.6;
-
-    @property({ type: cc.Float, tooltip: "停在空中時間（秒，玩家準備躲避）" })
-    jumpHangDuration: number = 0.8;
-
-    @property({ type: cc.Float, tooltip: "墜落時間（秒）" })
-    jumpFallDuration: number = 0.35;
-
-    @property({ type: cc.Float, tooltip: "跳到畫面上方的高度（相對於 groundY 的偏移）" })
-    jumpUpOffsetY: number = 900;
-
-    @property({ type: cc.Float, tooltip: "落地時 Camera Shake 強度（像素）" })
-    shakeAmplitude: number = 30;
-
-    @property({ type: cc.Float, tooltip: "落地時 Camera Shake 持續時間（秒）" })
-    shakeDuration: number = 0.5;
-
-    @property({ type: cc.Float, tooltip: "落地衝擊波水平判定半徑（像素）" })
-    slamHitRadius: number = 200;
-
-    @property({ type: cc.Integer, tooltip: "落地對玩家造成的傷害（若直接命中）" })
-    slamDamage: number = 25;
-
-    // -----------------------------------------
-    // 耙子下戳
-    // -----------------------------------------
-    @property({ type: cc.Float, tooltip: "耙子預警時間（秒，玩家看見落點到實際下戳）" })
-    rakeTelegraphDuration: number = 0.6;
-
-    @property({ type: cc.Float, tooltip: "耙子下戳時間（秒）" })
-    rakeStabDuration: number = 0.25;
-
-    @property({ type: cc.Float, tooltip: "耙子從多高處往下戳（玩家頭頂上方多少像素）" })
-    rakeStartOffsetY: number = 600;
-
-    @property({ type: cc.Float, tooltip: "耙子戳擊存在時間（秒）" })
-    rakeLingerDuration: number = 0.3;
-
-    // -----------------------------------------
     // 召喚
     // -----------------------------------------
+    @property({ type: cc.Prefab, tooltip: "召喚小怪 Prefab（階段2/3 使用）" })
+    minionPrefab: cc.Prefab = null;
+
     @property({ type: cc.Float, tooltip: "階段2 召喚小怪間隔（秒；<=0 表示不召喚）" })
     phase2SummonInterval: number = 6.0;
+
+    // -----------------------------------------
+    // Camera Shake（攻擊落地可呼叫 triggerCameraShake）
+    // -----------------------------------------
+    @property({ type: cc.Float, tooltip: "Camera Shake 強度（像素）" })
+    shakeAmplitude: number = 30;
+
+    @property({ type: cc.Float, tooltip: "Camera Shake 持續時間（秒）" })
+    shakeDuration: number = 0.5;
 
     // -----------------------------------------
     // 內部狀態
@@ -182,16 +175,16 @@ export default class FinalBoss extends cc.Component {
     private phase: BossPhase = BossPhase.Phase1;
     private hatBroken: boolean = false;
     private isAttacking: boolean = false;
-    private isAirborne: boolean = false;
     private attackTimer: number = 0;
-    private scytheCdTimer: number = 0;
+    private cooldowns: number[] = [];          // 每招的剩餘冷卻（索引對齊 attacks）
+    private activeAttack: BossAttackDef = null; // 目前進行中的攻擊（給動畫事件用）
     private cameraOrigin: cc.Vec2 = cc.v2(0, 0);
     private shakeRemaining: number = 0;
 
     // 隨機漂移用
-    private driftDir: number = 1;          // 目前漂移方向（+1 右 / -1 左）
-    private driftTimer: number = 0;        // 距離下次換方向還剩多少秒
-    private driftSpeed: number = 0;        // 目前這段漂移的速度（隨機）
+    private driftDir: number = 1;
+    private driftTimer: number = 0;
+    private driftSpeed: number = 0;
 
     // -----------------------------------------
     // 生命週期
@@ -203,7 +196,12 @@ export default class FinalBoss extends cc.Component {
         if (this.cameraNode) {
             this.cameraOrigin = cc.v2(this.cameraNode.x, this.cameraNode.y);
         }
+        // 所有攻擊 hitbox 預設關閉、冷卻歸零
+        this.cooldowns = this.attacks.map(() => 0);
+        this.attacks.forEach(a => { if (a.hitbox) a.hitbox.active = false; });
+
         this.pickNewDrift();
+        this.playIdle();
         this.enterPhase1();
     }
 
@@ -214,29 +212,27 @@ export default class FinalBoss extends cc.Component {
         this.updateAttackTimer(dt);
         this.updateCameraShake(dt);
 
-        if (this.scytheCdTimer > 0) this.scytheCdTimer -= dt;
+        for (let i = 0; i < this.cooldowns.length; i++) {
+            if (this.cooldowns[i] > 0) this.cooldowns[i] -= dt;
+        }
     }
 
     // -----------------------------------------
     // 移動：隨機漂移（不追玩家）
-    // 每隔一段隨機時間就重新挑方向與速度；碰到邊界則反彈
     // -----------------------------------------
     private updateMovement(dt: number) {
-        if (this.isAttacking || this.isAirborne) return;
+        if (this.isAttacking) return;
 
         this.driftTimer -= dt;
         if (this.driftTimer <= 0) this.pickNewDrift();
 
         const next = this.node.x + this.driftDir * this.driftSpeed * dt;
-
-        // 撞到活動範圍邊界就反彈
         if (next <= this.arenaMinX || next >= this.arenaMaxX) {
             this.driftDir *= -1;
         }
         this.node.x = cc.misc.clampf(next, this.arenaMinX, this.arenaMaxX);
     }
 
-    // 隨機挑一段新的漂移（方向、速度、持續時間都隨機）
     private pickNewDrift() {
         this.driftDir = Math.random() < 0.5 ? -1 : 1;
         this.driftSpeed = this.driftSpeedMin
@@ -249,7 +245,7 @@ export default class FinalBoss extends cc.Component {
     // 攻擊節奏
     // -----------------------------------------
     private updateAttackTimer(dt: number) {
-        if (this.isAttacking || this.isAirborne) return;
+        if (this.isAttacking) return;
 
         this.attackTimer += dt;
         const interval = this.phase === BossPhase.Phase3
@@ -262,152 +258,102 @@ export default class FinalBoss extends cc.Component {
         }
     }
 
+    // 從「已解鎖且不在冷卻」的攻擊裡做加權隨機
     private chooseAndExecuteAttack() {
-        const candidates: AttackType[] = [];
-        if (this.scytheCdTimer <= 0) candidates.push(AttackType.ScytheSweep);
-        candidates.push(AttackType.RakeStab);
-        if (this.phase !== BossPhase.Phase1) candidates.push(AttackType.JumpSlam);
-
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        switch (pick) {
-            case AttackType.ScytheSweep: this.doScytheSweep(); break;
-            case AttackType.JumpSlam:    this.doJumpSlam();    break;
-            case AttackType.RakeStab:    this.doRakeStab();    break;
+        const usable: number[] = [];
+        let totalWeight = 0;
+        for (let i = 0; i < this.attacks.length; i++) {
+            const a = this.attacks[i];
+            if (a.unlockPhase > this.phase) continue;   // 還沒解鎖
+            if (this.cooldowns[i] > 0) continue;        // 冷卻中
+            usable.push(i);
+            totalWeight += Math.max(0, a.weight);
         }
+        if (usable.length === 0) return;
+
+        // 加權隨機
+        let r = Math.random() * totalWeight;
+        let chosen = usable[0];
+        for (const i of usable) {
+            r -= Math.max(0, this.attacks[i].weight);
+            if (r <= 0) { chosen = i; break; }
+        }
+        this.playAttack(chosen);
     }
 
     // -----------------------------------------
-    // 攻擊一：鐮刀揮舞
-    // 做法：建一個 pivot 空節點放在 Boss 手臂位置，鐮刀掛在 pivot 底下、
-    // 往外偏移 scytheRadius。轉 pivot 的 angle，鐮刀就會繞著 Boss 畫弧線。
+    // 統一攻擊執行：播動畫 + 管 hitbox 開關
     // -----------------------------------------
-    private doScytheSweep() {
-        if (!this.scythePrefab || !this.attackLayer) {
-            cc.warn("【FinalBoss】scythePrefab 或 attackLayer 未綁定");
-            return;
-        }
-        this.isAttacking = true;
-        this.scytheCdTimer = this.scytheCooldown;
+    private playAttack(index: number) {
+        const def = this.attacks[index];
+        if (!def) return;
 
-        // 朝玩家那一側揮
+        this.isAttacking = true;
+        this.activeAttack = def;
+        this.cooldowns[index] = def.cooldown;
+
+        // 面向玩家
+        this.faceTowardsPlayer();
+
+        // 播動畫；動畫事件幀會呼叫 onHitboxOn / onHitboxOff
+        if (this.anim && def.clipName) {
+            this.anim.play(def.clipName);
+        }
+
+        // fallback：若動畫沒加事件幀，用秒數開關 hitbox
+        // （有事件幀時，這兩個 scheduleOnce 會被事件搶先做掉，重複設 active 不影響結果）
+        this.scheduleOnce(() => this.onHitboxOn(), def.hitOnTime);
+        this.scheduleOnce(() => this.onHitboxOff(), def.hitOffTime);
+
+        // 攻擊結束：關 hitbox、回待機、解除鎖定
+        this.scheduleOnce(() => this.finishAttack(), def.duration);
+    }
+
+    // 開啟目前攻擊的 hitbox，並移到「砍到位」的位置（依面向鏡射 X）
+    // 可由動畫事件幀呼叫，也可由 fallback 計時呼叫
+    onHitboxOn() {
+        const def = this.activeAttack;
+        if (!def || !def.hitbox) return;
+        const dir = this.getFacingDir();
+        def.hitbox.setPosition(cc.v2(dir * def.hitOffsetX, def.hitOffsetY));
+        def.hitbox.active = true;
+    }
+
+    // 關閉目前攻擊的 hitbox（動畫事件幀或 fallback 計時呼叫）
+    onHitboxOff() {
+        const def = this.activeAttack;
+        if (def && def.hitbox) def.hitbox.active = false;
+    }
+
+    private finishAttack() {
+        this.onHitboxOff();
+        this.isAttacking = false;
+        this.activeAttack = null;
+        this.playIdle();
+    }
+
+    // -----------------------------------------
+    // 面向
+    // -----------------------------------------
+    private faceTowardsPlayer() {
+        if (!this.facingNode) return;
         const dir = this.playerNode && this.playerNode.x < this.node.x ? -1 : 1;
+        this.facingNode.scaleX = Math.abs(this.facingNode.scaleX) * dir;
+    }
 
-        // 1) pivot 軸心節點，放在 Boss 手臂位置
-        const pivot = new cc.Node("scythePivot");
-        this.attackLayer.addChild(pivot);
-        pivot.setPosition(cc.v2(
-            this.node.x + dir * this.scythePivotOffsetX,
-            this.node.y + this.scythePivotOffsetY,
-        ));
-        // 左右揮：把整個軸心鏡射
-        pivot.scaleX = dir;
+    private getFacingDir(): number {
+        if (this.facingNode && this.facingNode.scaleX < 0) return -1;
+        return 1;
+    }
 
-        // 2) 鐮刀掛在 pivot 底下，往外延伸 scytheRadius（刀身長度）
-        const scythe = cc.instantiate(this.scythePrefab);
-        pivot.addChild(scythe);
-        scythe.setPosition(cc.v2(0, -this.scytheRadius));
-
-        // 3) 轉 pivot 的角度 → 鐮刀繞 Boss 畫弧
-        pivot.angle = this.scytheStartAngle;
-        cc.tween(pivot)
-            .to(this.scytheSweepDuration, { angle: this.scytheEndAngle }, { easing: 'quadIn' })
-            .call(() => { if (cc.isValid(pivot)) pivot.destroy(); })
-            .start();
-
-        this.scheduleOnce(() => { this.isAttacking = false; }, this.scytheSweepDuration);
+    private playIdle() {
+        if (this.anim && this.idleClipName) this.anim.play(this.idleClipName);
     }
 
     // -----------------------------------------
-    // 攻擊二：跳躍墜落
+    // Camera Shake（攻擊落地時可由動畫事件或程式呼叫）
     // -----------------------------------------
-    private doJumpSlam() {
-        if (!this.playerNode || !cc.isValid(this.playerNode)) return;
-        this.isAttacking = true;
-        this.isAirborne = true;
-
-        const startPos = cc.v2(this.node.x, this.node.y);
-        const apexY = this.groundY + this.jumpUpOffsetY;
-
-        cc.tween(this.node)
-            .to(this.jumpUpDuration, { y: apexY }, { easing: 'sineOut' })
-            .call(() => {
-                // 鎖定玩家當下 X 作為落點
-                const targetX = cc.misc.clampf(
-                    this.playerNode ? this.playerNode.x : startPos.x,
-                    this.arenaMinX,
-                    this.arenaMaxX,
-                );
-                this.node.x = targetX;
-            })
-            .delay(this.jumpHangDuration)
-            .to(this.jumpFallDuration, { y: this.groundY }, { easing: 'quadIn' })
-            .call(() => this.onSlamLand())
-            .start();
-    }
-
-    private onSlamLand() {
-        this.isAirborne = false;
-        this.triggerCameraShake();
-        this.spawnSlamShock();
-        this.applySlamDamage();
-        this.scheduleOnce(() => { this.isAttacking = false; }, 0.2);
-    }
-
-    private spawnSlamShock() {
-        if (!this.slamShockPrefab || !this.attackLayer) return;
-        const shock = cc.instantiate(this.slamShockPrefab);
-        this.attackLayer.addChild(shock);
-        shock.setPosition(cc.v2(this.node.x, this.groundY));
-    }
-
-    private applySlamDamage() {
-        if (!this.playerNode || !cc.isValid(this.playerNode)) return;
-        const dx = Math.abs(this.playerNode.x - this.node.x);
-        if (dx <= this.slamHitRadius) {
-            // main 玩家血量由 PlayerHealth 管（簽名 takeDamage(damage, attacker?)）
-            const hp = this.playerNode.getComponent("PlayerHealth") as any;
-            if (hp && typeof hp.takeDamage === "function") {
-                hp.takeDamage(this.slamDamage, this.node);
-            }
-        }
-    }
-
-    // -----------------------------------------
-    // 攻擊三：耙子從上往下戳
-    // -----------------------------------------
-    private doRakeStab() {
-        if (!this.rakePrefab || !this.attackLayer || !this.playerNode) {
-            cc.warn("【FinalBoss】rakePrefab / attackLayer / playerNode 未綁定");
-            return;
-        }
-        this.isAttacking = true;
-
-        const targetX = this.playerNode.x;
-        const startY = this.playerNode.y + this.rakeStartOffsetY;
-        const endY = this.playerNode.y;
-
-        const rake = cc.instantiate(this.rakePrefab);
-        this.attackLayer.addChild(rake);
-        rake.setPosition(cc.v2(targetX, startY));
-        rake.opacity = 120; // 預警時半透明
-
-        cc.tween(rake)
-            .delay(this.rakeTelegraphDuration)
-            .call(() => { if (cc.isValid(rake)) rake.opacity = 255; })
-            .to(this.rakeStabDuration, { y: endY }, { easing: 'quadIn' })
-            .delay(this.rakeLingerDuration)
-            .call(() => { if (cc.isValid(rake)) rake.destroy(); })
-            .start();
-
-        const totalDuration =
-            this.rakeTelegraphDuration + this.rakeStabDuration + this.rakeLingerDuration;
-        this.scheduleOnce(() => { this.isAttacking = false; }, totalDuration);
-    }
-
-    // -----------------------------------------
-    // Camera Shake
-    // -----------------------------------------
-    private triggerCameraShake() {
+    triggerCameraShake() {
         if (!this.cameraNode) return;
         this.cameraOrigin = cc.v2(this.cameraNode.x, this.cameraNode.y);
         this.shakeRemaining = this.shakeDuration;
@@ -422,7 +368,7 @@ export default class FinalBoss extends cc.Component {
             return;
         }
 
-        const t = this.shakeRemaining / this.shakeDuration; // 1 → 0
+        const t = this.shakeRemaining / this.shakeDuration;
         const amp = this.shakeAmplitude * t;
         const ox = (Math.random() * 2 - 1) * amp;
         const oy = (Math.random() * 2 - 1) * amp;
@@ -458,7 +404,6 @@ export default class FinalBoss extends cc.Component {
         }
     }
 
-    // Boss 血量文字更新
     private updateHpLabel() {
         if (!this.hpLabel) return;
         const hp = Math.max(0, this.currentHp);
@@ -485,12 +430,12 @@ export default class FinalBoss extends cc.Component {
     // -----------------------------------------
     private enterPhase1() {
         this.phase = BossPhase.Phase1;
-        cc.log("【FinalBoss】進入階段 1：實體攻擊（鐮刀 + 耙子）");
+        cc.log("【FinalBoss】進入階段 1");
     }
 
     private enterPhase2() {
         this.phase = BossPhase.Phase2;
-        cc.log("【FinalBoss】進入階段 2：解鎖跳躍墜落 + 召喚");
+        cc.log("【FinalBoss】進入階段 2：解鎖更多攻擊 + 召喚");
         if (this.phase2SummonInterval > 0) {
             this.schedule(this.spawnMinion, this.phase2SummonInterval);
         }
@@ -511,6 +456,7 @@ export default class FinalBoss extends cc.Component {
     private die() {
         this.phase = BossPhase.Defeated;
         this.unscheduleAllCallbacks();
+        this.attacks.forEach(a => { if (a.hitbox) a.hitbox.active = false; });
         if (this.cameraNode) this.cameraNode.setPosition(this.cameraOrigin);
         cc.log("【FinalBoss】農夫大魔王倒下！化為塵土金幣雨…");
         this.node.destroy();
