@@ -47,7 +47,7 @@ export default class Monster extends cc.Component {
     private isAttacking: boolean = false;
     private isDead: boolean = false; 
     private isKnockedBack: boolean = false; 
-    private playerNode: cc.Node = null;
+    private players: cc.Node[] = [];
 
     onLoad() {
         cc.director.getPhysicsManager().enabled = true;
@@ -63,9 +63,15 @@ export default class Monster extends cc.Component {
         
         this.startX = this.node.x;
 
-        this.playerNode = cc.find('Player') || cc.find('Canvas/Player');
-        if (!this.playerNode) {
-            console.warn("Monster 找不到 Player 節點，請確認玩家節點名稱是否為 'Player'");
+        // 分別尋找 Player1 和 Player2，並加入陣列中
+        let p1 = cc.find('Player1') || cc.find('Canvas/Player1');
+        let p2 = cc.find('Player2') || cc.find('Canvas/Player2');
+        
+        if (p1) this.players.push(p1);
+        if (p2) this.players.push(p2);
+
+        if (this.players.length === 0) {
+            console.warn("Monster 找不到 Player1 或 Player2，請確認節點名稱是否正確！");
         }
         
         if (this.anim && !this.isAttacking && !this.isDead && !this.isKnockedBack) {
@@ -101,20 +107,36 @@ export default class Monster extends cc.Component {
     }
 
     private checkPlayerInSight() {
-        if (!this.playerNode || this.isDead || this.isKnockedBack) return;
-
-        let dx = this.playerNode.x - this.node.x;
-        let dy = this.playerNode.y - this.node.y;
-
-        if (Math.abs(dy) > 50) return; 
+        if (this.players.length === 0 || this.isDead || this.isKnockedBack) return;
 
         let canSeePlayer = false;
-        
-        if (this.moveDirection === 1 && dx > 0 && dx <= this.detectDistance) {
-            canSeePlayer = true;
-        }
-        else if (this.moveDirection === -1 && dx < 0 && Math.abs(dx) <= this.detectDistance) {
-            canSeePlayer = true;
+
+        // 獲取怪物的世界座標
+        let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
+
+        // 用迴圈檢查每一個活著的玩家
+        for (let i = 0; i < this.players.length; i++) {
+            let player = this.players[i];
+            
+            if (!player || !player.isValid) continue;
+
+            // ★ 關鍵修復：將玩家座標也轉為世界座標，消除因父節點層級不同帶來的本地座標誤差
+            let playerWorldPos = player.convertToWorldSpaceAR(cc.v2(0, 0));
+
+            let dx = playerWorldPos.x - monsterWorldPos.x;
+            let dy = playerWorldPos.y - monsterWorldPos.y;
+
+            // 微調：稍微放大高度容錯（設為 80 像素），避免因新角色 Prefab 的圖片中心點（Anchor）設定不同導致高度判定失敗
+            if (Math.abs(dy) > 80) continue; 
+
+            if (this.moveDirection === 1 && dx > 0 && dx <= this.detectDistance) {
+                canSeePlayer = true;
+                break; 
+            }
+            else if (this.moveDirection === -1 && dx < 0 && Math.abs(dx) <= this.detectDistance) {
+                canSeePlayer = true;
+                break; 
+            }
         }
 
         if (canSeePlayer) {
@@ -185,7 +207,7 @@ export default class Monster extends cc.Component {
             }
         }
 
-        if (otherNodeName === 'Player') {
+        if (otherNodeName === 'Player1' || otherNodeName === 'Player2') {
             console.log("碰到玩家實體！造成碰撞傷害：" + this.attackDamage);
         }
 
@@ -197,7 +219,6 @@ export default class Monster extends cc.Component {
             
             let knockbackDir = monsterWorldPos.x >= bulletWorldPos.x ? 1 : -1;
 
-            // ★ 修改 1：延遲一幀銷毀子彈，保護物理引擎
             this.scheduleOnce(() => {
                 if (bulletNode.isValid) {
                     bulletNode.destroy(); 
@@ -227,11 +248,9 @@ export default class Monster extends cc.Component {
         this.isKnockedBack = true;
         this.isAttacking = false; 
 
-        // ★ 修改 2：延遲一幀給予擊退速度，避開碰撞瞬間的速度鎖定
         this.scheduleOnce(() => {
             if (this.rb && !this.isDead) {
                 let finalDir = knockbackDir !== 0 ? knockbackDir : -this.moveDirection;
-                // 若怪物的剛體摩擦力過大導致退不動，可以將這裡的 y 改為給一點微小的向上力 (如 50) 讓它微跳
                 this.rb.linearVelocity = cc.v2(finalDir * this.knockbackSpeed, this.rb.linearVelocity.y);
             }
         }, 0);
