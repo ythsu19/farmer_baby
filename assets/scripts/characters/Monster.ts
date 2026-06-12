@@ -45,8 +45,9 @@ export default class Monster extends cc.Component {
     private startX: number = 0;
     
     private isAttacking: boolean = false;
-    private isDead: boolean = false; 
-    private isKnockedBack: boolean = false; 
+    // ★ 將 private 改成 public
+    public isDead: boolean = false; 
+    private isKnockedBack: boolean = false;
     private players: cc.Node[] = [];
 
     onLoad() {
