@@ -49,10 +49,19 @@
       },
       {
         "__id__": 15
+      },
+      {
+        "__id__": 16
+      },
+      {
+        "__id__": 17
+      },
+      {
+        "__id__": 18
       }
     ],
     "_prefab": {
-      "__id__": 16
+      "__id__": 19
     },
     "_opacity": 255,
     "_color": {
@@ -523,6 +532,54 @@
     "ghostSpriteSource": {
       "__id__": 7
     },
+    "_id": ""
+  },
+  {
+    "__type__": "7e478VQlU9NQ6f5Ry40gK6Z",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "eventName": "skill-cast",
+    "clip": {
+      "__uuid__": "fc8be7b0-c747-4c3b-a36a-dfd38fe01c90"
+    },
+    "volume": 1,
+    "minInterval": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "7e478VQlU9NQ6f5Ry40gK6Z",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "eventName": "dash:start",
+    "clip": {
+      "__uuid__": "ea6c8aa5-bc04-418f-abd2-111c53bb1f59"
+    },
+    "volume": 1,
+    "minInterval": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "7e478VQlU9NQ6f5Ry40gK6Z",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "eventName": "hurt",
+    "clip": {
+      "__uuid__": "634aea6c-78ef-4115-8478-186b90199f45"
+    },
+    "volume": 1,
+    "minInterval": 1.5,
     "_id": ""
   },
   {
