@@ -20,7 +20,5 @@ export default class CameraFollow extends cc.Component {
         const localPos = cameraParent.convertToNodeSpaceAR(worldPos);
 
         this.node.setPosition(localPos.x, localPos.y);
-
-        cc.log("[CameraFollow] camera =", this.node.x, this.node.y);
     }
 }

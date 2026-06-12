@@ -10,11 +10,11 @@
             "scaleInDock": 1
         },
         "C:/farmer_baby/assets/src/map/WorldMap.tmx": {
-            "scale": 2,
-            "selectedLayer": 1,
+            "scale": 1,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 1759.5,
-                "y": 1038
+                "x": 1679,
+                "y": 860.5
             }
         },
         "C:/farmer_baby/assets/src/map/WorldMap.tmx#bush1A": {
