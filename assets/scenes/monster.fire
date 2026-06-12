@@ -3140,7 +3140,7 @@
     "moveSpeed": 100,
     "patrolDistance": 150,
     "maxHealth": 100,
-    "attackDamage": 1,
+    "attackDamage": 10,
     "detectDistance": 200,
     "attackDuration": 0.5,
     "knockbackDuration": 0.5,
@@ -3348,7 +3348,7 @@
     "moveSpeed": 100,
     "patrolDistance": 150,
     "maxHealth": 100,
-    "attackDamage": 1,
+    "attackDamage": 10,
     "detectDistance": 100,
     "attackDuration": 1,
     "knockbackDuration": 0.5,
@@ -3554,7 +3554,7 @@
     "moveSpeed": 100,
     "patrolDistance": 150,
     "maxHealth": 100,
-    "attackDamage": 1,
+    "attackDamage": 10,
     "detectDistance": 200,
     "attackDuration": 1,
     "knockbackDuration": 0.5,
@@ -3646,6 +3646,10 @@
       "__id__": 2
     },
     "_enabled": true,
+    "bgmClip": {
+      "__uuid__": "f12043bb-7a6d-468c-8416-f647be869ccb"
+    },
+    "bgmVolume": 0.5,
     "_id": "f3+E4VcjRF7Y5I/uW+lA8O"
   }
 ]
