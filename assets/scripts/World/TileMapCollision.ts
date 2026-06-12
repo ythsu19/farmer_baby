@@ -13,8 +13,7 @@ export default class TileMapCollision extends cc.Component {
         physics.enabled = true;
         physics.gravity = cc.v2(0, 0);
 
-        // 測試時顯示碰撞框
-        physics.debugDrawFlags = cc.PhysicsManager.DrawBits.e_shapeBit;
+        physics.debugDrawFlags = 0;
 
         this.tiledMap = this.getComponent(cc.TiledMap);
 
