@@ -1,4 +1,10 @@
-// PlayerInput — 鍵盤（移動/跳） + 滑鼠（瞄準/射擊）
+// PlayerInput — P1 專用：箭頭移動 / 跳 + 滑鼠（瞄準/射擊）
+//
+// 鍵位設計（只負責 P1，因為要跟 P2 同台共用一組鍵盤）：
+//   ←→  水平移動
+//   ↑   跳
+//   滑鼠 瞄準 + 射擊
+// 不吃 A/D/W/Space — 那些留給 Player2Input.ts (P2 的 WASD + Space/W 跳 + E 技能)。
 //
 // 設計上 PlayerInput 不知道角色會做什麼，只負責「使用者按了什麼 / 滑鼠在哪」。
 // 改觸控 / 手把 / AI 只要做出另一個發相同事件 / 提供 aimWorldPos() 的元件來換掉。
@@ -10,11 +16,13 @@
 //   input:attack-up                      — 放開滑鼠左鍵那一瞬間
 //
 // 公開讀取：
-//   aimWorldPos(): cc.Vec2  — 滑鼠最新「世界座標」（會即時用主相機把 screen→world 換算）
+//   aimWorldPos(): cc.Vec2  — 滑鼠最新「世界座標」（即時依 Main Camera 節點位置補正，鏡頭移動也正確）
 //   hasAim(): boolean       — 滑鼠是否已經動過（沒動過 → 武器/瞄準應該用預設方向）
 //
-// 滑鼠事件監聽在 cc.find('Canvas') 上 — Cocos 2.4 沒有 systemEvent 的滑鼠全域事件，
-// 但 Canvas 節點會收到所有沒被上層擋掉的滑鼠事件。
+// 滑鼠事件直接掛 cc.game.canvas 的 DOM event，跳過 Cocos node 的世界座標 hit-test。
+// 為什麼？Cocos 2.4 對 node.on(MOUSE_*) 會檢查滑鼠世界座標是否落在節點 bbox 內；
+// Canvas 的世界 bbox 不會跟 camera 走，所以 camera 移到 world x=2000+ 之後
+// 滑鼠對應的世界座標就會超出 Canvas bbox → Cocos 不再觸發 → 角色變成不能射擊。
 //
 // 詳細設計請看 LIN/player_design.md「事件詞彙」。
 
@@ -26,7 +34,7 @@ export default class PlayerInput extends cc.Component {
     private _keys: Set<number> = new Set();
     private _dir = 0;
 
-    private _mouseTarget: cc.Node = null;
+    private _domCanvas: HTMLCanvasElement | null = null;
     private _aimScreen: cc.Vec2 = cc.v2(0, 0);
     private _aimWorld: cc.Vec2 = cc.v2(0, 0);
     private _hasAim: boolean = false;
@@ -35,15 +43,21 @@ export default class PlayerInput extends cc.Component {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
 
-        // 滑鼠：掛在 Canvas 節點（沒有 Canvas 就靜默放棄滑鼠輸入）
-        const canvas = cc.find('Canvas');
-        if (canvas) {
-            this._mouseTarget = canvas;
-            canvas.on(cc.Node.EventType.MOUSE_DOWN, this._onMouseDown, this);
-            canvas.on(cc.Node.EventType.MOUSE_UP, this._onMouseUp, this);
-            canvas.on(cc.Node.EventType.MOUSE_MOVE, this._onMouseMove, this);
+        // 滑鼠：直接掛 DOM event，不走 Cocos node listener。
+        // 為什麼不用 cc.find('Canvas').on(MOUSE_*)？
+        //   Cocos 2.4 對 mouse event 做「世界座標 hit-test」— 滑鼠要在節點世界 bbox 內才觸發。
+        //   Canvas 的世界 bbox 固定在 (0,0)–(designW, designH) 附近，不會跟 camera 走。
+        //   一旦 camera 跟著 player 走到 world x=2000+，滑鼠對應的世界位置就超出 Canvas bbox，
+        //   Cocos 不再觸發 Canvas 上的 MOUSE_*。
+        //   直接掛 DOM event 沒這個 hit-test 問題，camera 怎麼移都正確。
+        const dom: HTMLCanvasElement | null = (cc.game as any).canvas || null;
+        if (dom) {
+            this._domCanvas = dom;
+            dom.addEventListener('mousedown', this._onDomMouseDown);
+            dom.addEventListener('mouseup', this._onDomMouseUp);
+            dom.addEventListener('mousemove', this._onDomMouseMove);
         } else {
-            cc.warn('[PlayerInput] 找不到 Canvas，滑鼠輸入不會運作');
+            cc.warn('[PlayerInput] cc.game.canvas 不存在，滑鼠輸入不會運作');
         }
     }
 
@@ -51,11 +65,11 @@ export default class PlayerInput extends cc.Component {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this._onKeyUp, this);
 
-        if (this._mouseTarget) {
-            this._mouseTarget.off(cc.Node.EventType.MOUSE_DOWN, this._onMouseDown, this);
-            this._mouseTarget.off(cc.Node.EventType.MOUSE_UP, this._onMouseUp, this);
-            this._mouseTarget.off(cc.Node.EventType.MOUSE_MOVE, this._onMouseMove, this);
-            this._mouseTarget = null;
+        if (this._domCanvas) {
+            this._domCanvas.removeEventListener('mousedown', this._onDomMouseDown);
+            this._domCanvas.removeEventListener('mouseup', this._onDomMouseUp);
+            this._domCanvas.removeEventListener('mousemove', this._onDomMouseMove);
+            this._domCanvas = null;
         }
         this._keys.clear();
     }
@@ -89,8 +103,9 @@ export default class PlayerInput extends cc.Component {
     }
 
     private _refreshDir() {
-        const left = this._keys.has(cc.macro.KEY.a) || this._keys.has(cc.macro.KEY.left);
-        const right = this._keys.has(cc.macro.KEY.d) || this._keys.has(cc.macro.KEY.right);
+        // P1 只吃方向鍵；A/D 留給 Player2Input.ts
+        const left = this._keys.has(cc.macro.KEY.left);
+        const right = this._keys.has(cc.macro.KEY.right);
         const dir = right ? 1 : left ? -1 : 0;
         if (dir === this._dir) return;
         this._dir = dir;
@@ -98,46 +113,69 @@ export default class PlayerInput extends cc.Component {
     }
 
     private _isJumpKey(k: number): boolean {
-        return k === cc.macro.KEY.space || k === cc.macro.KEY.w || k === cc.macro.KEY.up;
+        // P1 只用 ↑ 跳；Space / W 留給 Player2Input.ts，避免同台雙人按 Space 兩個一起跳
+        return k === cc.macro.KEY.up;
     }
 
-    // ── 滑鼠 ──────────────────────────────────────────
-    private _onMouseDown(e: cc.Event.EventMouse) {
-        this._updateAimFromEvent(e);
-        if (e.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
-            this.node.emit('input:attack-down');
-        }
-    }
+    // ── 滑鼠（直接掛 DOM event，跳過 Cocos node hit-test） ──────────────
+    //
+    // 用 arrow function 保留 this 綁定 — DOM addEventListener 不會自動綁 this。
+    // MouseEvent.button: 0=左鍵、1=中鍵、2=右鍵
 
-    private _onMouseUp(e: cc.Event.EventMouse) {
-        this._updateAimFromEvent(e);
-        if (e.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
-            this.node.emit('input:attack-up');
-        }
-    }
+    private _onDomMouseDown = (e: MouseEvent) => {
+        this._updateAimFromDom(e);
+        if (e.button === 0) this.node.emit('input:attack-down');
+    };
 
-    private _onMouseMove(e: cc.Event.EventMouse) {
-        this._updateAimFromEvent(e);
-    }
+    private _onDomMouseUp = (e: MouseEvent) => {
+        this._updateAimFromDom(e);
+        if (e.button === 0) this.node.emit('input:attack-up');
+    };
 
-    private _updateAimFromEvent(e: cc.Event.EventMouse) {
-        const loc = e.getLocation();
-        this._aimScreen.x = loc.x;
-        this._aimScreen.y = loc.y;
+    private _onDomMouseMove = (e: MouseEvent) => {
+        this._updateAimFromDom(e);
+    };
+
+    private _updateAimFromDom(e: MouseEvent) {
+        const dom = this._domCanvas;
+        if (!dom) return;
+        const rect = dom.getBoundingClientRect();
+        const design = cc.view.getDesignResolutionSize();
+
+        // 滑鼠在 DOM canvas 上的 pixel 位置（相對 canvas 左上角）
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+
+        // 轉換成 Cocos OpenGL 座標系：左下原點、design resolution 範圍
+        //   x: 直接線性 scale 到 design width
+        //   y: 翻轉（DOM y 向下、OpenGL y 向上）後 scale 到 design height
+        this._aimScreen.x = (px / rect.width) * design.width;
+        this._aimScreen.y = (1 - py / rect.height) * design.height;
         this._hasAim = true;
     }
 
     private _recomputeAimWorld() {
-        // 有主相機 → 用 getScreenToWorldPoint；沒有 → screen 直接當 world（Canvas 不偏移時等價）
+        // 直接用 Cocos 官方 API `cc.Camera.main.getScreenToWorldPoint`：
+        //   → 它用「實際渲染畫面的 view matrix」反向換算 screen → world
+        //   → 保證跟畫面看到的座標一致，camera 怎麼動都正確
+        //
+        // 為什麼之前手算 (cameraWorld + screen − viewCenter) 不夠 robust？
+        //   數學上等價，但前提是「拿到的 cameraNode = 實際渲染的 cc.Camera」。
+        //   場景結構複雜（多個 cc.Camera / CameraFollow 掛錯節點 / parent 偏移）時，
+        //   這個前提會破。讓 Cocos 自己回答「滑鼠 pixel 對應到世界哪裡」最穩。
+
         const cam = (cc.Camera as any).main as cc.Camera;
         if (cam && typeof (cam as any).getScreenToWorldPoint === 'function') {
             const out = cc.v3();
             (cam as any).getScreenToWorldPoint(cc.v3(this._aimScreen.x, this._aimScreen.y, 0), out);
             this._aimWorld.x = out.x;
             this._aimWorld.y = out.y;
-        } else {
-            this._aimWorld.x = this._aimScreen.x;
-            this._aimWorld.y = this._aimScreen.y;
+            return;
         }
+
+        // 沒 cc.Camera.main → 退化：螢幕當世界
+        this._aimWorld.x = this._aimScreen.x;
+        this._aimWorld.y = this._aimScreen.y;
     }
+
 }

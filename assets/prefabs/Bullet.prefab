@@ -33,13 +33,10 @@
       },
       {
         "__id__": 6
-      },
-      {
-        "__id__": 7
       }
     ],
     "_prefab": {
-      "__id__": 8
+      "__id__": 7
     },
     "_opacity": 255,
     "_color": {
@@ -84,8 +81,8 @@
     "_skewX": 0,
     "_skewY": 0,
     "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
+    "_groupIndex": 5,
+    "groupIndex": 5,
     "_id": ""
   },
   {
@@ -203,20 +200,6 @@
     "speed": 800,
     "damage": 20,
     "lifetime": 1.5,
-    "_id": ""
-  },
-  {
-    "__type__": "2ba2cIjGLBDzIWQsoN1Guke",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": false,
-    "speed": 600,
-    "damage": 20,
-    "lifetime": 2,
-    "maxRange": 1000,
     "_id": ""
   },
   {

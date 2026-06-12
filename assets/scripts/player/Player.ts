@@ -53,8 +53,8 @@ export default class Player extends cc.Component {
     @property({ displayName: '垂直接觸法線門檻', tooltip: '|normal.y| 大於此值才算垂直接觸（用接觸點位置區分地面 / 天花板）' })
     groundNormalThreshold: number = 0.5;
 
-    @property({ displayName: 'Debug：畫物理形狀', tooltip: '臨時除錯用，看完關掉' })
-    debugDrawPhysics: boolean = true;
+    @property({ displayName: 'Debug：畫物理形狀', tooltip: '臨時除錯用，看完關掉。會畫「全部」collider；只想看單一 hitbox 請改用該節點上的 HitBoxDebugDraw 元件' })
+    debugDrawPhysics: boolean = false;
 
     // ── 公開唯讀 API ──────────────────────────────
     get state(): PlayerState { return this._state; }
@@ -82,10 +82,8 @@ export default class Player extends cc.Component {
         const pm = cc.director.getPhysicsManager();
         pm.enabled = true;
         pm.gravity = cc.v2(0, -1800);
-        if (this.debugDrawPhysics) {
-            const D = cc.PhysicsManager.DrawBits;
-            pm.debugDrawFlags = D.e_shapeBit | D.e_aabbBit;
-        }
+        // 顯式關掉 debug 物理形狀繪製 — 蓋過 prefab/scene 裡可能留下的 debugDrawPhysics 序列化值
+        pm.debugDrawFlags = 0;
 
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.fixedRotation = true;

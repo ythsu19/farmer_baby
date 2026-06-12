@@ -87,13 +87,18 @@ export default class Bullet extends cc.Component {
         if (group === 'player' || group === 'bullet') return;
 
         // 對方有 takeDamage 就掉血（Damageable / Monster / EnemyBase / PlayerHealth /
-        // BossWeakPoint（最終 Boss 弱點部位）/ BossMinion（Boss 召喚的小怪）都實作這個介面）
+        // BossWeakPoint（最終 Boss 弱點部位）/ BossMinion（Boss 召喚的小怪）/
+        // Boss（鐮刀 Boss 根節點）/ BossBodyHurtBox（鐮刀 Boss 身體受擊箱）/
+        // BossHatWeakPoint（鐮刀 Boss 帽子弱點）都實作這個介面）
         const target: any = other.getComponent('Damageable')
             || other.getComponent('Monster')
             || other.getComponent('EnemyBase')
             || other.getComponent('PlayerHealth')
             || other.getComponent('BossWeakPoint')
-            || other.getComponent('BossMinion');
+            || other.getComponent('BossMinion')
+            || other.getComponent('Boss')
+            || other.getComponent('BossBodyHurtBox')
+            || other.getComponent('BossHatWeakPoint');
         if (target && typeof target.takeDamage === 'function') {
             target.takeDamage(this.damage, this.node);
         }

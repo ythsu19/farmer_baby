@@ -2,7 +2,7 @@
   "ver": "1.1.0",
   "uuid": "98bde7ba-041e-46ff-8aa5-d9b72e49c047",
   "importer": "typescript",
-  "isPlugin": null,
+  "isPlugin": false,
   "loadPluginInWeb": true,
   "loadPluginInNative": true,
   "loadPluginInEditor": false,

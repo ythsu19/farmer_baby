@@ -2,13 +2,16 @@
 //
 // 為什麼資料寫在 .ts 而不是 Inspector？
 //   教學文字會反覆改寫；放 ts 用 git diff 看比 Inspector 拉欄位順太多。
-//   Inspector 只用來把 step.arrowTargetId 對應到場景內節點（manager 用 dictionary 拉）。
+//   Inspector 只用來把 step.arrowTargetId 對應到場景內節點（manager 用平行陣列拉）。
 //
 // 完成條件分兩類：
 //   source: 'player'  → 訂閱 player.node 上的事件（input:move / jumped / shot ...）
 //   source: 'beacon'  → 等 cc.game emit 'tutorial:beacon' 且 payload.id === step.beaconId
 //
 // filter 是選用的 — 例如 input:move 要 dir != 0、jumped 要 double === true 才算
+//
+// 目前版本：全部 5 步用 beacon contact 觸發（玩家走過 Checkpoint Node 才推下一步）
+// → 設計者控節奏最直覺；要改成事件觸發只需改一行 source / eventName / beaconId
 
 export interface TutorialStep {
     id: string;
@@ -36,39 +39,38 @@ export interface TutorialStep {
 
 export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
     {
-        id: 'move',
-        hintText: '按 A / D 走動',
-        source: 'player',
-        eventName: 'input:move',
-        requiredCount: 5,
-        filter: (p) => p && p.dir !== 0,
+        id: 'walk',
+        hintText: '按 A / D 走動，往前進',
+        source: 'beacon',
+        beaconId: 'walk',
+        arrowTargetId: 'walk',
     },
     {
-        id: 'jump-spike-1',
-        hintText: '按 Space 跳起來，跨過前方的尖刺',
+        id: 'jump',
+        hintText: '按 Space / W 跳起來，跳過前方障礙物',
         source: 'beacon',
-        beaconId: 'spike-1',
-        arrowTargetId: 'spike-1',
+        beaconId: 'jump',
+        arrowTargetId: 'jump',
     },
     {
-        id: 'double-jump-spike-2',
-        hintText: '空中再按一次跳：雙跳跨更大的刺',
+        id: 'double-jump',
+        hintText: '連續按兩次跳躍 → 雙跳：試著跨越超高障礙物',
         source: 'beacon',
-        beaconId: 'spike-2',
-        arrowTargetId: 'spike-2',
+        beaconId: 'double-jump',
+        arrowTargetId: 'double-jump',
+    },
+    {
+        id: 'spike',
+        hintText: '前方有尖刺，小心不要碰到 — 會受傷！',
+        source: 'beacon',
+        beaconId: 'spike',
+        arrowTargetId: 'spike',
     },
     {
         id: 'shoot',
-        hintText: '用滑鼠瞄準、按住左鍵射擊',
-        source: 'player',
-        eventName: 'shot',
-        requiredCount: 1,
-    },
-    {
-        id: 'target-down',
-        hintText: '打爆紅靶',
+        hintText: '按下滑鼠左鍵射擊，把擋路的怪射掉',
         source: 'beacon',
-        beaconId: 'target',
-        arrowTargetId: 'target',
+        beaconId: 'shoot',
+        arrowTargetId: 'shoot',
     },
 ];

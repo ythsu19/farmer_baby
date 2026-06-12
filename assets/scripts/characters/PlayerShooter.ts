@@ -1,5 +1,5 @@
 const { ccclass, property } = cc._decorator;
-import Bullet from './Bullet';
+import Bullet from '../player/Bullet';
 
 @ccclass
 export default class PlayerShooter extends cc.Component {
