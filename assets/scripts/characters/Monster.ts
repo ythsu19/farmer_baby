@@ -1,3 +1,5 @@
+
+import OnionBullet from './OnionBullet';
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -26,6 +28,17 @@ export default class Monster extends cc.Component {
 
     @property({ tooltip: '被擊退時的後退速度' })
     knockbackSpeed: number = 150;
+
+    // ★ 新增 1：引入子彈的預製體 (Prefab)
+    @property({ type: cc.Prefab, tooltip: '要發射的子彈(催淚彈) Prefab' })
+    bulletPrefab: cc.Prefab = null;
+
+    // ★ 新增 2：設定子彈生成的相對位置
+    @property({ tooltip: '子彈生成的 X 軸偏移量 (離怪物多遠生成)' })
+    bulletSpawnOffsetX: number = 40;
+    
+    @property({ tooltip: '子彈發射的延遲時間(秒)，配合動畫吐出氣體的瞬間' })
+    fireDelay: number = 0.3;
 
     private currentHealth: number = 0;
     private rb: cc.RigidBody = null;
@@ -112,7 +125,7 @@ export default class Monster extends cc.Component {
         }
     }
 
-    private startAttack() {
+private startAttack() {
         if (this.isDead || this.isKnockedBack) return;
         
         this.isAttacking = true;
@@ -125,11 +138,45 @@ export default class Monster extends cc.Component {
             this.anim.play('onion_attack');
         }
 
+        // ★ 新增 3：設定計時器，延遲發射子彈 (配合動畫動作)
+        this.scheduleOnce(() => {
+            // 確保要發射時，怪物沒有死掉也沒有被擊退中斷
+            if (!this.isDead && !this.isKnockedBack) {
+                this.fireBullet();
+            }
+        }, this.fireDelay);
+
         this.scheduleOnce(() => {
             if (!this.isDead && !this.isKnockedBack) { 
                 this.endAttack();
             }
         }, this.attackDuration);
+    }
+
+    // ★ 新增 4：發射子彈的核心邏輯
+    private fireBullet() {
+        if (!this.bulletPrefab) {
+            console.warn("未綁定子彈 Prefab！");
+            return;
+        }
+
+        // 1. 生成子彈實體
+        let bulletNode = cc.instantiate(this.bulletPrefab);
+        
+        // 2. 將子彈設為怪物父節點的子節點 (通常是 Canvas 或某個場景節點)
+        // 注意：千萬不要把子彈設為怪物的子節點，否則怪物回頭子彈會跟著回頭！
+        bulletNode.parent = this.node.parent;
+
+        // 3. 計算生成位置 (怪物當前位置 + 面朝方向的偏移量)
+        let spawnX = this.node.x + (this.moveDirection * this.bulletSpawnOffsetX);
+        let spawnY = this.node.y; // 如果氣體是從嘴巴出來，可以在這裡微調 Y 軸 (例如 this.node.y + 10)
+        bulletNode.setPosition(spawnX, spawnY);
+
+        // 4. 初始化子彈方向
+        let bulletScript = bulletNode.getComponent(OnionBullet); // 這裡不用加引號
+        if (bulletScript) {
+            bulletScript.init(this.moveDirection);
+        }
     }
 
     private endAttack() {
