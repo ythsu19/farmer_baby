@@ -47,6 +47,13 @@ export default class PlayerController extends cc.Component {
     @property({ displayName: '地板 Y 座標' })
     groundY: number = -200;
 
+    @property({
+        type: [cc.Node],
+        displayName: '單向平台節點（掛 Platform.ts）',
+        tooltip: '可從上面踩的平台。把掛了 Platform.ts 的節點拖進來；留空 → 自動抓場景裡所有 Platform。'
+    })
+    platforms: cc.Node[] = [];
+
     @property({ displayName: '最大血量' })
     maxHp: number = 100;
 
@@ -99,10 +106,15 @@ export default class PlayerController extends cc.Component {
 
     private _mouseDownHandler: (e: MouseEvent) => void;
 
+    /** 平台元件快取（避免每幀 getComponent） */
+    private _platformList: any[] = [];
+
     // ──────────────────────────────────────────
     onLoad() {
         if (!this.anim) this.anim = this.getComponent(cc.Animation);
         this._hp = this.maxHp;
+
+        this._collectPlatforms();
 
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,   this._onKeyUp,   this);
@@ -118,6 +130,22 @@ export default class PlayerController extends cc.Component {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this._onKeyDown, this);
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP,   this._onKeyUp,   this);
         cc.game.canvas.removeEventListener('mousedown', this._mouseDownHandler);
+    }
+
+    /** 收集場上的 Platform 元件：Inspector 有拖就用拖的，沒拖就自動抓整個場景的 Platform */
+    private _collectPlatforms() {
+        this._platformList = [];
+        if (this.platforms && this.platforms.length > 0) {
+            for (const n of this.platforms) {
+                if (!n) continue;
+                const p = n.getComponent('Platform');
+                if (p) this._platformList.push(p);
+            }
+            return;
+        }
+        // 沒拖 → 自動抓整個場景（不用 cc.find，符合專案規範）
+        const scene = cc.director.getScene();
+        if (scene) this._platformList = scene.getComponentsInChildren('Platform');
     }
 
     update(dt: number) {
@@ -142,10 +170,31 @@ export default class PlayerController extends cc.Component {
             this._vx = 0;
         }
 
+        this._checkLeftSupport();   // 站在平台上但走出邊緣 → 解除 grounded 讓重力接管
         this._handleGravity(dt);
         this._applyPosition(dt);
         this._refreshState();
         this._updateFacing();
+    }
+
+    /**
+     * 若目前 grounded，檢查腳下是否還有支撐（地面線或某塊平台）。
+     * 走出平台邊緣 → 解除 grounded，開始進入 coyote time 後下落。
+     */
+    private _checkLeftSupport() {
+        if (!this._isGrounded) return;
+        // 站在最底地面線上 → 永遠有支撐
+        if (this.node.y <= this.groundY + 1) return;
+        // 否則必須站在某塊平台頂面上（x 在範圍內、y 貼著頂面）
+        for (const p of this._platformList) {
+            if (!p || !p.node || !p.node.isValid) continue;
+            if (p.isXInRange(this.node.x) && Math.abs(this.node.y - p.getTopWorldY()) <= 2) {
+                return;   // 還站在這塊平台上
+            }
+        }
+        // 沒有任何支撐 → 離開地面（保留 coyote time，手感才不會突兀）
+        this._isGrounded  = false;
+        this._coyoteTimer = this.coyoteTime;
     }
 
     // ──────────────────────────────────────────
@@ -221,9 +270,23 @@ export default class PlayerController extends cc.Component {
     //  套用座標
     // ──────────────────────────────────────────
     private _applyPosition(dt: number) {
+        const prevY = this.node.y;          // 移動前的 Y（單向平台要靠它判斷「是否穿越頂面」）
         this.node.x += this._vx * dt;
         this.node.y += this._vy * dt;
 
+        // 1) 先看單向平台：只有「正在下落」且「這一幀從平台頂面上方掉到下方」才踩上去。
+        //    從下往上跳（_vy > 0）一律不擋 → 可穿過平台底部。
+        const landY = this._checkPlatformLanding(prevY);
+        if (landY !== null) {
+            this.node.y       = landY;
+            this._vy          = 0;
+            this._isGrounded  = true;
+            this._jumpCount   = 0;
+            this._coyoteTimer = this.coyoteTime;
+            return;
+        }
+
+        // 2) 再看地面線（最底層的地板，永遠擋）
         if (this.node.y <= this.groundY) {
             this.node.y       = this.groundY;
             this._vy          = 0;
@@ -231,6 +294,28 @@ export default class PlayerController extends cc.Component {
             this._jumpCount   = 0;
             this._coyoteTimer = this.coyoteTime;
         }
+    }
+
+    /**
+     * 單向平台落地判定。回傳要停的 Y；沒踩到任何平台回傳 null。
+     * 條件：玩家正在下落（_vy <= 0）、x 在平台範圍內、且這一幀從平台頂面「上方」掉到「下方或剛好」。
+     * @param prevY 這一幀移動前的玩家 Y
+     */
+    private _checkPlatformLanding(prevY: number): number | null {
+        if (this._vy > 0) return null;          // 往上跳：不擋，可穿過
+        const curY = this.node.y;
+        let best: number | null = null;
+        for (const p of this._platformList) {
+            if (!p || !p.node || !p.node.isValid) continue;
+            if (!p.isXInRange(this.node.x)) continue;
+            const top = p.getTopWorldY();
+            // 移動前在頂面上方（含相等容差），移動後到了頂面或更低 → 這一幀穿越頂面 → 踩上
+            if (prevY >= top - 1 && curY <= top) {
+                // 多個平台都符合時，取最高的那個（先落在最上層）
+                if (best === null || top > best) best = top;
+            }
+        }
+        return best;
     }
 
     // ──────────────────────────────────────────

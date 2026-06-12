@@ -129,6 +129,9 @@ export default class Boss extends cc.Component {
     /** ScytheHitBox 讀這個值當預設傷害 */
     get scytheDamage(): number { return this.attackDamage; }
 
+    /** 目前血量（給 BossHUD 等外部讀初始值用） */
+    get currentHealth(): number { return this._currentHealth; }
+
     /** 播一次音效（clip 沒設就跳過）。play 的第三參數直接指定這顆的音量，不動全域音效音量 */
     private _playSfx(clip: cc.AudioClip) {
         if (!clip) return;
