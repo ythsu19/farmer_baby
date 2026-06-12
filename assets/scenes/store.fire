@@ -106,6 +106,9 @@
       },
       {
         "__id__": 55
+      },
+      {
+        "__id__": 56
       }
     ],
     "_prefab": null,
@@ -2466,6 +2469,7 @@
     "radio1Volume": 0.8,
     "radio1ExclusivePlay": true,
     "treasureMoneyPerPress": 10,
+    "debugLog": true,
     "_id": "29fAUBLTJMyoJmDmyC1VzS"
   },
   {
@@ -2541,5 +2545,21 @@
     },
     "brokenHouseVolume": 1,
     "_id": "133HHF79tCRYj76RL1pllS"
+  },
+  {
+    "__type__": "521a4DHAhRG4ap0eJCAAECL",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "clip": {
+      "__uuid__": "02957670-b752-4758-ae1a-2a5790d7c2cd"
+    },
+    "loop": true,
+    "volume": 1,
+    "playOnLoad": true,
+    "_id": "326zvNLOdL05kS+ZlQNZQW"
   }
 ]

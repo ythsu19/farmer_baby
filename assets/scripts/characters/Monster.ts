@@ -208,7 +208,9 @@ export default class Monster extends cc.Component {
         }
 
         if (otherNodeName === 'Player1' || otherNodeName === 'Player2') {
-            console.log("碰到玩家實體！造成碰撞傷害：" + this.attackDamage);
+            // 透過 PlayerHealth.takeDamage 扣血 — 內建無敵時間 + 'hp-changed' event 廣播給 PlayerHUD
+            const ph = otherCollider.node.getComponent('PlayerHealth') as any;
+            if (ph) ph.takeDamage(this.attackDamage, this.node);
         }
 
         if (otherNodeName === 'Bullet') {
