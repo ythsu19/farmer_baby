@@ -94,7 +94,8 @@ export default class LeaderboardUI extends cc.Component {
                 return;
             }
             for (let i = 0; i < list.length; i++) {
-                this._addRow(i + 1, list[i].name, LeaderboardManager.formatTime(list[i].timeMs));
+                // timeLabel 節點沿用，但內容改成顯示剩餘血量
+                this._addRow(i + 1, list[i].name, LeaderboardManager.formatHp(list[i].hp));
             }
             this._setStatus('');   // 成功清掉訊息
         } catch (e) {
