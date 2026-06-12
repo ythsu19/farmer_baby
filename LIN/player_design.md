@@ -39,6 +39,9 @@ assets/scripts/tutorial/
 ├── TutorialHint.ts     ← ✅ Phase 5：prefab 元件；Label + 箭頭 + 淡入淡出
 ├── TutorialBeacon.ts   ← ✅ Phase 5：掛在 checkpoint / 靶子，contact 或 host-died 時 cc.game.emit
 └── steps.ts            ← ✅ Phase 5：教學步驟資料（不放 Inspector）
+
+assets/scripts/camera/
+└── CameraFollow.ts     ← ✅ Phase 5 附帶：橫向卷軸跟隨；X 平滑追、Y 鎖（跳躍不晃）；掛 Main Camera
 ```
 
 > 舊的 `assets/scripts/characters/Bullet.ts` + `PlayerShooter.ts` 用 `cc.Collider`（碰撞系統），跟 box2d 不相容；新場景一律用 `assets/scripts/player/` 下的新版。
@@ -173,9 +176,10 @@ Bullet.prefab (group: bullet)
 - **武器上下翻而非角色翻**：滑鼠在左半邊 → 武器 scaleY=-1（槍管朝外）；玩家 sprite 翻 scaleX 由 PlayerAnimator 自己處理。
 - **傷害是「鴨子型別」**：Bullet 不認識 enemy 類別，只要對方有 `takeDamage(damage, attacker?)` 就掉血。Monster / EnemyBase / PlayerHealth 都可實作。
 
-座標細節：
-- `PlayerInput.aimWorldPos()` 用 `cc.Camera.main.getScreenToWorldPoint()` 即時把滑鼠 screen → world，所以鏡頭移動也正確。
-- 沒有主相機（純 Canvas 場景）→ fallback 假設 screen == world，在無攝影機偏移的場景仍正確。
+座標細節（已在 Phase 5-C 加 CameraFollow 後修正）：
+- `PlayerInput.aimWorldPos()` 用「**手算**」：`cameraNode 世界座標 + (滑鼠 OpenGL 座標 − view 中心)`
+- 之前用 `cc.Camera.main.getScreenToWorldPoint()`，但 Cocos 2.4 該 API 在 camera 移動後回傳值不正確（已知 quirk）→ 改手算後 camera 移動 / 不動都正確
+- 沒有主相機（純 Canvas、無 cc.Camera 元件）→ 退化到 `cameraNode 世界座標 = (0,0)`，等同把螢幕當世界，在無攝影機偏移的場景仍正確
 
 ---
 

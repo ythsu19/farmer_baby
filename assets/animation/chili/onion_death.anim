@@ -1,38 +1,32 @@
 {
   "__type__": "cc.AnimationClip",
-  "_name": "onion_attack",
+  "_name": "onion_death",
   "_objFlags": 0,
   "_native": "",
-  "_duration": 1.0166666666666666,
+  "_duration": 0.6833333333333333,
   "sample": 60,
   "speed": 1,
-  "wrapMode": 2,
+  "wrapMode": 1,
   "curveData": {
     "comps": {
       "cc.Sprite": {
         "spriteFrame": [
           {
-            "frame": 0.016666666666666666,
+            "frame": 0,
             "value": {
-              "__uuid__": "1ffd7bce-465a-4d5f-a98f-941cd5e5842d"
+              "__uuid__": "46b7002e-c669-4d32-82f5-adf9dac108e2"
             }
           },
           {
             "frame": 0.3333333333333333,
             "value": {
-              "__uuid__": "2fbda361-ba16-4e2b-9636-10b5ee3b1404"
+              "__uuid__": "3de700ca-3fec-4658-9b01-d9dfc642744d"
             }
           },
           {
             "frame": 0.6666666666666666,
             "value": {
-              "__uuid__": "baa5ac28-93c2-4d9a-be53-866692e487ea"
-            }
-          },
-          {
-            "frame": 1,
-            "value": {
-              "__uuid__": "1ffd7bce-465a-4d5f-a98f-941cd5e5842d"
+              "__uuid__": "f588e009-8c62-460e-a692-c3f425d84029"
             }
           }
         ]

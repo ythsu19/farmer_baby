@@ -79,15 +79,18 @@
       },
       {
         "__id__": 17
+      },
+      {
+        "__id__": 23
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 23
+        "__id__": 29
       },
       {
-        "__id__": 24
+        "__id__": 30
       }
     ],
     "_prefab": null,
@@ -290,8 +293,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -268.869,
-        -81.75,
+        -379.635,
+        -66.529,
         0,
         0,
         0,
@@ -496,7 +499,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 955,
+      "width": 996,
       "height": 38
     },
     "_anchorPoint": {
@@ -508,8 +511,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        15.931,
-        -225.971,
+        36,
+        -226,
         0,
         0,
         0,
@@ -789,6 +792,11 @@
     "attackDuration": 1,
     "knockbackDuration": 0.5,
     "knockbackSpeed": 150,
+    "bulletPrefab": {
+      "__uuid__": "88c4df4a-ba8c-49b7-a1c5-433442871e5b"
+    },
+    "bulletSpawnOffsetX": 40,
+    "fireDelay": 0.3,
     "_id": "acx1hqrX5KPozjuOtO5s2p"
   },
   {
@@ -818,6 +826,214 @@
     ],
     "playOnLoad": true,
     "_id": "f9yxqE5SJDjYFc+ndqLZRS"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "Chili",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 24
+      },
+      {
+        "__id__": 25
+      },
+      {
+        "__id__": 26
+      },
+      {
+        "__id__": 27
+      },
+      {
+        "__id__": 28
+      }
+    ],
+    "_prefab": null,
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 40,
+      "height": 36
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        134.433,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": "79HyQbDWxHhLX4UldvJngW"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "8cdb44ac-a3f6-449f-b354-7cd48cf84061"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": "af1xRa5AVCNJA96YFK8zZb"
+  },
+  {
+    "__type__": "cc.RigidBody",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "_type": 2,
+    "_allowSleep": true,
+    "_gravityScale": 1,
+    "_linearDamping": 0,
+    "_angularDamping": 0,
+    "_linearVelocity": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_angularVelocity": 0,
+    "_fixedRotation": true,
+    "enabledContactListener": true,
+    "bullet": false,
+    "awakeOnLoad": true,
+    "_id": "beFg01Wo1MqYoTHZGXJL6O"
+  },
+  {
+    "__type__": "cc.PhysicsBoxCollider",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "tag": 0,
+    "_density": 1,
+    "_sensor": false,
+    "_friction": 0.2,
+    "_restitution": 0,
+    "body": null,
+    "_offset": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_size": {
+      "__type__": "cc.Size",
+      "width": 40,
+      "height": 36
+    },
+    "_id": "bbsYhaesxDq5KJMkzwugOx"
+  },
+  {
+    "__type__": "8c800SYWRFA+JUTRQsozvPR",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "moveSpeed": 100,
+    "patrolDistance": 150,
+    "maxHealth": 10,
+    "attackDamage": 1,
+    "detectDistance": 200,
+    "attackDuration": 1,
+    "knockbackDuration": 0.5,
+    "knockbackSpeed": 150,
+    "bulletPrefab": {
+      "__uuid__": "fa66fdce-e190-48a2-8db8-9969f8a9adea"
+    },
+    "bulletSpawnOffsetX": 40,
+    "fireDelay": 0.3,
+    "_id": "b4hxfNyklPuqbxrpQN0wjI"
+  },
+  {
+    "__type__": "cc.Animation",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "_defaultClip": {
+      "__uuid__": "67330b9b-a0b7-4bde-9c3d-cc3e4e0f2e4e"
+    },
+    "_clips": [
+      {
+        "__uuid__": "67330b9b-a0b7-4bde-9c3d-cc3e4e0f2e4e"
+      },
+      {
+        "__uuid__": "80f65a7d-df5e-49ef-9d3b-f42036d2b246"
+      },
+      {
+        "__uuid__": "679cabba-5e14-49fe-8b8f-b17996f0a5ba"
+      },
+      {
+        "__uuid__": "98b08cf9-e535-41e5-8451-e2464c0959e0"
+      }
+    ],
+    "playOnLoad": true,
+    "_id": "40+Lo3HvhOLKI2JY39ROF4"
   },
   {
     "__type__": "cc.Canvas",
