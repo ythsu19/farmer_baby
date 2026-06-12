@@ -1,4 +1,10 @@
-// PlayerInput — 鍵盤（移動/跳） + 滑鼠（瞄準/射擊）
+// PlayerInput — P1 專用：箭頭移動 / 跳 + 滑鼠（瞄準/射擊）
+//
+// 鍵位設計（只負責 P1，因為要跟 P2 同台共用一組鍵盤）：
+//   ←→  水平移動
+//   ↑   跳
+//   滑鼠 瞄準 + 射擊
+// 不吃 A/D/W/Space — 那些留給 Player2Input.ts (P2 的 WASD + Space/W 跳 + E 技能)。
 //
 // 設計上 PlayerInput 不知道角色會做什麼，只負責「使用者按了什麼 / 滑鼠在哪」。
 // 改觸控 / 手把 / AI 只要做出另一個發相同事件 / 提供 aimWorldPos() 的元件來換掉。
@@ -97,8 +103,9 @@ export default class PlayerInput extends cc.Component {
     }
 
     private _refreshDir() {
-        const left = this._keys.has(cc.macro.KEY.a) || this._keys.has(cc.macro.KEY.left);
-        const right = this._keys.has(cc.macro.KEY.d) || this._keys.has(cc.macro.KEY.right);
+        // P1 只吃方向鍵；A/D 留給 Player2Input.ts
+        const left = this._keys.has(cc.macro.KEY.left);
+        const right = this._keys.has(cc.macro.KEY.right);
         const dir = right ? 1 : left ? -1 : 0;
         if (dir === this._dir) return;
         this._dir = dir;
@@ -106,7 +113,8 @@ export default class PlayerInput extends cc.Component {
     }
 
     private _isJumpKey(k: number): boolean {
-        return k === cc.macro.KEY.space || k === cc.macro.KEY.w || k === cc.macro.KEY.up;
+        // P1 只用 ↑ 跳；Space / W 留給 Player2Input.ts，避免同台雙人按 Space 兩個一起跳
+        return k === cc.macro.KEY.up;
     }
 
     // ── 滑鼠（直接掛 DOM event，跳過 Cocos node hit-test） ──────────────

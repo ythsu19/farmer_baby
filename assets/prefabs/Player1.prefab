@@ -64,8 +64,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 16,
-      "height": 16
+      "width": 103,
+      "height": 135
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -77,14 +77,14 @@
       "ctor": "Float64Array",
       "array": [
         -397.333,
-        -244.262,
+        -175.835,
         0,
         0,
         0,
         0,
         1,
-        3,
-        3,
+        1,
+        1,
         3
       ]
     },
@@ -103,7 +103,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Gun1",
+    "_name": "Gun",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -132,8 +132,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 16,
-      "height": 16
+      "width": 185,
+      "height": 234
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -144,15 +144,15 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        8.732,
-        -0.667,
+        59.416,
+        -5.686,
         0,
         0,
         0,
         0,
         1,
-        0.33333,
-        0.33333,
+        0.2,
+        0.2,
         0.33333
       ]
     },
@@ -204,8 +204,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        9.464,
-        -6.154,
+        77.551,
+        -6.153,
         0,
         0,
         0,
@@ -256,7 +256,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "13690370-805b-4ca7-a700-5cda6f0c21dc"
+      "__uuid__": "93849500-1111-4ae6-b078-ccefe9a07db6"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -269,9 +269,7 @@
     "_fillStart": 0,
     "_fillRange": 0,
     "_isTrimmedMode": true,
-    "_atlas": {
-      "__uuid__": "7a743dd0-ddf2-4094-ae87-5d615d892c9d"
-    },
+    "_atlas": null,
     "_id": ""
   },
   {
@@ -301,7 +299,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "01c84312-f9a8-4859-806c-fd6f3bc05648"
+      "__uuid__": "3432cb1e-a6a5-478e-a7b1-557d9606a834"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -314,9 +312,7 @@
     "_fillStart": 0,
     "_fillRange": 0,
     "_isTrimmedMode": true,
-    "_atlas": {
-      "__uuid__": "72c34c5d-de90-4b8d-aabd-be605d9ea93b"
-    },
+    "_atlas": null,
     "_id": ""
   },
   {
@@ -336,7 +332,6 @@
     "jumpBuffer": 0.2,
     "enableDoubleJump": true,
     "groundNormalThreshold": -0.5,
-    "debugDrawPhysics": true,
     "_id": ""
   },
   {
@@ -380,13 +375,13 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0.2,
-      "y": 0.1
+      "x": -0.3,
+      "y": -0.4
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 16.2,
-      "height": 16
+      "width": 103.2,
+      "height": 135
     },
     "_id": ""
   },
@@ -414,57 +409,52 @@
     "flipNode": null,
     "idleFrames": [
       {
-        "__uuid__": "e0c04317-54fa-42b8-a492-4d98f15b0967"
+        "__uuid__": "3432cb1e-a6a5-478e-a7b1-557d9606a834"
       },
       {
-        "__uuid__": "a8512e2e-51d1-4f16-b256-52a0eee88383"
+        "__uuid__": "67928d8e-3747-40f1-ad17-d70efe803759"
       }
     ],
-    "idleFps": 4,
+    "idleFps": 2,
     "walkFrames": [
       {
-        "__uuid__": "d5dd81db-003e-4b5d-95df-86ef45b682ef"
+        "__uuid__": "b72ca777-c050-41ff-acf1-713cf2f00108"
       },
       {
-        "__uuid__": "e6798592-a9ec-40c9-beb6-636b64366406"
+        "__uuid__": "59f65706-a467-48ca-936b-6a6427c2f877"
       },
       {
-        "__uuid__": "36e7cd93-e240-49ef-b7c7-2e7aafef4981"
+        "__uuid__": "d48ada06-cc70-4018-b84a-c88d96ef8e6f"
       },
       {
-        "__uuid__": "95b8e251-233c-4709-9325-f26f406735d5"
-      },
-      {
-        "__uuid__": "dd82b8cf-473a-4aee-984b-faedb4de17a5"
-      },
-      {
-        "__uuid__": "9e33ed90-3556-47c5-a33b-bcc92ce310aa"
-      },
-      {
-        "__uuid__": "01c84312-f9a8-4859-806c-fd6f3bc05648"
-      },
-      {
-        "__uuid__": "2e5a8163-098c-4030-8c62-cd6a9829fc60"
+        "__uuid__": "42410c4e-b012-4aa2-b79b-4f58bc0bda51"
       }
     ],
-    "walkFps": 10,
+    "walkFps": 8,
     "jumpFrames": [
       {
-        "__uuid__": "9d8ac4b5-7914-4bf5-998b-e8c15070f3b8"
+        "__uuid__": "95292543-52b1-4ca2-b23f-1abada3b9eb1"
       },
       {
-        "__uuid__": "1ad877ef-511a-47e8-8654-9797a09c7495"
+        "__uuid__": "da7deffe-ffab-4ba0-9d6a-75890e6ca5cd"
       },
       {
-        "__uuid__": "90063b35-7bee-47b9-a3b7-385970cc1e1e"
-      },
-      {
-        "__uuid__": "bed81360-9d82-47a9-be74-74343b992dbe"
+        "__uuid__": "0cf52763-6c17-4dba-9271-61d060ca4cac"
       }
     ],
-    "jumpFps": 8,
+    "jumpFps": 4,
     "jumpHoldLast": true,
-    "fallFrames": [],
+    "fallFrames": [
+      {
+        "__uuid__": "a55b3c36-3006-4c20-9c39-64c9a24c207c"
+      },
+      {
+        "__uuid__": "d0bcdff5-1229-4116-aa0f-931054252c09"
+      },
+      {
+        "__uuid__": "10480338-2c0a-4c52-ae67-ce966100b130"
+      }
+    ],
     "fallFps": 8,
     "fallHoldLast": true,
     "_id": ""

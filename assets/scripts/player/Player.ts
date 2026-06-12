@@ -82,10 +82,8 @@ export default class Player extends cc.Component {
         const pm = cc.director.getPhysicsManager();
         pm.enabled = true;
         pm.gravity = cc.v2(0, -1800);
-        if (this.debugDrawPhysics) {
-            const D = cc.PhysicsManager.DrawBits;
-            pm.debugDrawFlags = D.e_shapeBit | D.e_aabbBit;
-        }
+        // 顯式關掉 debug 物理形狀繪製 — 蓋過 prefab/scene 裡可能留下的 debugDrawPhysics 序列化值
+        pm.debugDrawFlags = 0;
 
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.fixedRotation = true;
