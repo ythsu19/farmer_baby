@@ -9,7 +9,7 @@ export default class MonsterManager extends cc.Component {
         cc.director.getPhysicsManager().enabled = true;
         
         // (可選) 顯示物理碰撞框，方便除錯。正式發布前記得關掉或註解掉！
-        cc.director.getPhysicsManager().debugDrawFlags = 0; 
+        cc.director.getPhysicsManager().debugDrawFlags = 1; 
     }
     
     onLoad() {
