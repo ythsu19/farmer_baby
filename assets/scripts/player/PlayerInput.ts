@@ -1,10 +1,16 @@
 // PlayerInput — P1 專用：箭頭移動 / 跳 + 滑鼠（瞄準/射擊）
 //
 // 鍵位設計（只負責 P1，因為要跟 P2 同台共用一組鍵盤）：
-//   ←→  水平移動
-//   ↑   跳
-//   滑鼠 瞄準 + 射擊
-// 不吃 A/D/W/Space — 那些留給 Player2Input.ts (P2 的 WASD + Space/W 跳 + E 技能)。
+//   ←→     水平移動
+//   ↑      跳
+//   滑鼠   瞄準 + 射擊
+//   /      衝刺（dash）— 跟方向鍵同一個區域，右手食指自然落點
+// 不吃 A/D/W/Space — 那些留給 Player2Input.ts (P2 的 WASD + Space/W 跳 + E 技能 + Left Shift dash)。
+//
+// 為什麼不用 Right Shift？
+//   Windows 把 Right Shift 拿來當 sticky keys / 系統快捷鍵 hook 之一，
+//   多次按下後 OS 會吃掉事件，window-level keydown 也收不到。
+//   /（forward slash, keyCode 191）走 cc.systemEvent 正常收得到，不需 DOM 繞道。
 //
 // 設計上 PlayerInput 不知道角色會做什麼，只負責「使用者按了什麼 / 滑鼠在哪」。
 // 改觸控 / 手把 / AI 只要做出另一個發相同事件 / 提供 aimWorldPos() 的元件來換掉。
@@ -59,6 +65,7 @@ export default class PlayerInput extends cc.Component {
         } else {
             cc.warn('[PlayerInput] cc.game.canvas 不存在，滑鼠輸入不會運作');
         }
+
     }
 
     onDestroy() {
@@ -93,6 +100,9 @@ export default class PlayerInput extends cc.Component {
 
         if (this._isJumpKey(e.keyCode)) {
             this.node.emit('input:jump-down');
+        }
+        if (e.keyCode === cc.macro.KEY.forwardslash) {
+            this.node.emit('input:dash-down');
         }
         this._refreshDir();
     }
