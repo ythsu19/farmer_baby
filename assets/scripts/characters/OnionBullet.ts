@@ -45,18 +45,15 @@ export default class OnionBullet extends cc.Component {
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         const otherName = otherCollider.node.name;
+        const isPlayer = otherName === 'Player1' || otherName === 'Player2';
 
         // 碰到牆壁、隱形邊界或玩家，子彈就銷毀
-        if (otherName === 'wall' || otherCollider.tag === 1 || otherName === 'Player') {
-            
-            if (otherName === 'Player') {
-                console.log("洋蔥大招擊中玩家！造成傷害：" + this.damage);
-                // 如果有玩家腳本，在這裡扣血：
-                // let player = otherCollider.node.getComponent('Player');
-                // if (player) player.takeDamage(this.damage);
+        if (otherName === 'wall' || otherCollider.tag === 1 || isPlayer) {
+            if (isPlayer) {
+                // 透過 PlayerHealth.takeDamage 扣血 — 內建無敵時間 + 'hp-changed' event 廣播給 PlayerHUD
+                const ph = otherCollider.node.getComponent('PlayerHealth') as any;
+                if (ph) ph.takeDamage(this.damage, this.node);
             }
-
-            // 銷毀子彈
             this.node.destroy();
         }
     }
