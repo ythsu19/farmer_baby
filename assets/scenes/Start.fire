@@ -3419,7 +3419,7 @@
     "registerButton": {
       "__id__": 52
     },
-    "nextSceneName": "Tutorial",
+    "nextSceneName": "StartScene",
     "closeDelayOnSuccess": 1,
     "_id": "818gakAd5MeJNK9j24jvyB"
   },
