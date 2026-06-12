@@ -55,8 +55,22 @@ export default class TutorialBeacon extends cc.Component {
     onBeginContact(_c: cc.PhysicsContact, _self: cc.PhysicsCollider, other: cc.PhysicsCollider) {
         if (this.mode !== 'contact') return;
         if (this._fired && this.oneShot) return;
-        if (other.node.group !== 'player') return;
+        if (!this._isPlayer(other.node)) return;
         this._fire();
+    }
+
+    /**
+     * 判斷碰撞物是不是 Player。
+     * 不只依賴 node.group === 'player' — 因為 group 沒設 / 設錯時會誤觸發
+     * （之前 bug：子彈打到 beacon 也會推進教學）。
+     * 直接看節點上有沒有 Player 元件最穩 — Player 元件只掛在玩家主體上。
+     */
+    private _isPlayer(n: cc.Node): boolean {
+        if (!n || !n.isValid) return false;
+        if (n.getComponent('Player')) return true;
+        // 兼容：若 collider 掛在 Player 的子節點，往上找一層
+        if (n.parent && n.parent.getComponent('Player')) return true;
+        return false;
     }
 
     private _onHostDied() {
