@@ -1,0 +1,43 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "mushroom_knockback",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.5166666666666667,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "50de1c61-6661-4bd5-b3f3-dacd4bdb0562"
+            }
+          },
+          {
+            "frame": 0.16666666666666666,
+            "value": {
+              "__uuid__": "e5475f8c-0c00-4d2e-a3c5-8ac637fbb63f"
+            }
+          },
+          {
+            "frame": 0.3333333333333333,
+            "value": {
+              "__uuid__": "87d9900d-d7e2-46a8-8d5c-4a1333e8cabb"
+            }
+          },
+          {
+            "frame": 0.5,
+            "value": {
+              "__uuid__": "50de1c61-6661-4bd5-b3f3-dacd4bdb0562"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
