@@ -27,9 +27,9 @@ export default class ShopController extends cc.Component {
         { name: "速度強化", price: 30, desc: "注射後能讓雙腿變得輕盈，永久提升移動速度。" },
         { name: "攻擊力提升", price: 50, desc: "經過特殊打磨的武器強化組件，能造成更大傷害。" },
         { name: "跳躍高度增加", price: 40, desc: "神秘的彈簧靴配件，讓你能夠跳過更高的障礙物。" },
-        { name: "語音包 A", price: 100, desc: "解鎖專屬的嘲諷與戰鬥語音包 A 組合。" },
-        { name: "語音包 B", price: 100, desc: "解鎖充滿魔性的搞笑互動語音包 B 組合。" },
-        { name: "語音包 C", price: 150, desc: "解鎖史詩級的隱藏劇情配音與特效語音包 C 組合。" },
+        { name: "破房的聲音", price: 10, desc: "完全沒用，會發出讓你破房的聲音。" },
+        { name: "復古收音機-1", price: 100, desc: "更改主場景的音樂。" },
+        { name: "復古收音機-2", price: 150, desc: "更改主場景的音樂。" },
     ];
 
     private currentIndex: number = 0; 
