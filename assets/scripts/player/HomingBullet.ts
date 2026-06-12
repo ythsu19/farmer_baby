@@ -17,6 +17,8 @@
 //   行為差異太大（追蹤狀態機 + 目標管理）— 把 if 寫進 Bullet 會讓兩種子彈都變難讀。
 //   獨立檔案，pool / takeDamage 邏輯複製即可。
 
+import { GameStore } from '../Store/GameStore';
+
 const { ccclass, property, requireComponent } = cc._decorator;
 
 @ccclass
@@ -53,6 +55,10 @@ export default class HomingBullet extends cc.Component {
     onLoad() {
         this._rb = this.getComponent(cc.RigidBody);
         this._rb.enabledContactListener = true;
+
+        // 套用商店「攻擊力提升」加成（跟 Bullet.ts 同模式）。
+        // onLoad 在節點 instantiate 那一次跑，NodePool 取出再放回不會重跑 → 只乘一次。
+        this.damage *= GameStore.damageMul;
     }
 
     /**
