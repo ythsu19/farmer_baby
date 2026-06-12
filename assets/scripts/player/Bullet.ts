@@ -22,6 +22,8 @@
 // 對方元件介面：對方需要有 takeDamage(damage: number, attacker?: cc.Node) 方法才能掉血。
 // 之後 Phase 4-B 寫 PlayerHealth、敵人 Monster 元件補上 takeDamage 即可。
 
+import { GameStore } from '../Store/GameStore';
+
 const { ccclass, property, requireComponent } = cc._decorator;
 
 @ccclass
@@ -47,6 +49,11 @@ export default class Bullet extends cc.Component {
         this._rb = this.getComponent(cc.RigidBody);
         // 即使 prefab 沒勾，也保險開啟，否則 onBeginContact 不會觸發
         this._rb.enabledContactListener = true;
+
+        // 套用商店「攻擊力提升」加成。
+        // onLoad 在「節點被 instantiate 出來」那一次跑（NodePool 再利用不會重跑）→ 只乘一次，
+        // 場景重載 → pool 跟著重建 → 新場景的 pool 會吃到最新的 damageMul。
+        this.damage *= GameStore.damageMul;
     }
 
     /**
@@ -102,6 +109,11 @@ export default class Bullet extends cc.Component {
         if (target && typeof target.takeDamage === 'function') {
             target.takeDamage(this.damage, this.node);
         }
+
+        // 撞到任何東西（不管是敵人 / 牆 / 地形）都 emit hit —
+        // ParticleOnEvent 監聽這個事件，在本節點位置 spawn 火花 / 撞擊粒子。
+        // 先 emit 再 _recycle — emit 是同步的，粒子會在子彈 active=false 前被 parent 到場景上。
+        this.node.emit('hit');
 
         this._recycle();
     }
