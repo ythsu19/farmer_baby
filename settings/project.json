@@ -6,9 +6,9 @@
     "enemy",
     "item",
     "bullet",
-    "wall",
     "boss",
-    "bossatk"
+    "bossatk",
+    "wall"
   ],
   "collision-matrix": [
     [
@@ -18,8 +18,8 @@
       true,
       true,
       false,
+      null,
       true,
-      false,
       true
     ],
     [
@@ -29,6 +29,8 @@
       true,
       null,
       false,
+      null,
+      null,
       false
     ],
     [
@@ -38,6 +40,8 @@
       true,
       null,
       false,
+      null,
+      null,
       false
     ],
     [
@@ -47,6 +51,8 @@
       true,
       null,
       true,
+      null,
+      null,
       true
     ],
     [
@@ -58,16 +64,6 @@
     ],
     [
       false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true
-    ],
-    [
-      true,
       false,
       false,
       true,
@@ -82,7 +78,6 @@
       false,
       false,
       true,
-      false,
       false
     ],
     [
@@ -90,6 +85,16 @@
       false,
       false,
       false,
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      true,
+      false,
+      false,
+      true,
       false,
       false,
       false,
@@ -123,6 +128,5 @@
       "enable": false
     }
   },
-  "start-scene": "528740dc-2b5e-4ef6-ad11-8d564af19dcd",
-  "last-module-event-record-time": 1781263606608
+  "start-scene": "548f0e3a-ce65-4e67-9e77-2cfb22c727c8"
 }
