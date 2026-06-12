@@ -576,7 +576,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 169.73,
+      "width": 187.58,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -628,8 +628,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "You   Win",
-    "_N$string": "You   Win",
+    "_string": "You   Lose",
+    "_N$string": "You   Lose",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,
