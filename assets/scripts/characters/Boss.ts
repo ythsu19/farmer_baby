@@ -146,8 +146,22 @@ export default class Boss extends cc.Component {
         // 落地音效：BossAnimator 落地震動時會 emit 'boss-landed'，這裡接它播音效
         this.node.on('boss-landed', this._onLanded, this);
 
+        // 預熱音效：第一次 play 一顆 AudioClip 時引擎要解碼，會造成延遲（受傷音效慢半拍）。
+        // 開場用音量 0 各播一次再立刻停，逼引擎先把 clip 載入/解碼快取住，之後 play 就即時。
+        this._warmUpSfx();
+
         // 保險：一開始把所有攻擊箱關閉
         this.disableHit();
+    }
+
+    /** 預先解碼所有音效（音量 0 播一次馬上停），避免實際播放時首次解碼延遲 */
+    private _warmUpSfx() {
+        const clips = [this.hurtSfx, this.deathSfx, this.landSfx];
+        for (const clip of clips) {
+            if (!clip) continue;
+            const id = cc.audioEngine.play(clip, false, 0);
+            cc.audioEngine.stop(id);
+        }
     }
 
     onDestroy() {

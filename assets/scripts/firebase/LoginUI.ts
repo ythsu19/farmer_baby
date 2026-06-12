@@ -28,6 +28,9 @@ export default class LoginUI extends cc.Component {
     @property({ type: cc.Node, tooltip: '「開啟登入」按鈕節點。開啟 panel 時會把它藏起來，關閉 panel 時再顯示回來。留空 → 不控制' })
     openButtonNode: cc.Node = null;
 
+    @property({ type: [cc.Node], tooltip: '開啟登入 panel 時要一起隱藏的其他 panel（例如排行榜）。關閉登入時會顯示回來。' })
+    otherPanelsToHide: cc.Node[] = [];
+
     @property({ tooltip: '勾 → 一開始就隱藏 panel，要按開啟鈕才出現' })
     hidePanelAtStart: boolean = true;
 
@@ -64,17 +67,25 @@ export default class LoginUI extends cc.Component {
     }
 
     // ── 按鈕事件 ──────────────────────────────────
-    /** 開啟鈕：顯示登入 panel，同時把開啟鈕本身藏起來 */
+    /** 開啟鈕：顯示登入 panel，同時把開啟鈕本身藏起來，並隱藏其他 panel（例如排行榜） */
     public onOpenPanelClick() {
         if (this.panelNode) this.panelNode.active = true;
         if (this.openButtonNode) this.openButtonNode.active = false;   // 藏開啟鈕
+        // 隱藏其他會擋住/疊在一起的 panel（例如排行榜）
+        for (const n of this.otherPanelsToHide) {
+            if (n) n.active = false;
+        }
         this._hideStatus();   // 每次開啟都先清掉上次的訊息
     }
 
-    /** 關閉鈕（選用）：隱藏登入 panel，並把開啟鈕顯示回來 */
+    /** 關閉鈕（選用）：隱藏登入 panel，並把開啟鈕與其他 panel 顯示回來 */
     public onClosePanelClick() {
         if (this.panelNode) this.panelNode.active = false;
         if (this.openButtonNode) this.openButtonNode.active = true;    // 顯示回開啟鈕
+        // 其他 panel 顯示回來
+        for (const n of this.otherPanelsToHide) {
+            if (n) n.active = true;
+        }
     }
 
     public onLoginClick() {
