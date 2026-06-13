@@ -45,7 +45,6 @@ export default class Monster extends cc.Component {
     private startX: number = 0;
     
     private isAttacking: boolean = false;
-    // ★ 將 private 改成 public
     public isDead: boolean = false; 
     private isKnockedBack: boolean = false;
     private players: cc.Node[] = [];
@@ -62,9 +61,11 @@ export default class Monster extends cc.Component {
             this.rb.fixedRotation = true;
         }
         
-        this.startX = this.node.x;
+        // 確保不是從池子復活時才記錄初始 X
+        if (this.startX === 0) {
+            this.startX = this.node.x;
+        }
 
-        // 分別尋找 Player1 和 Player2，並加入陣列中
         let p1 = cc.find('Player1') || cc.find('Canvas/Player1');
         let p2 = cc.find('Player2') || cc.find('Canvas/Player2');
         
@@ -80,11 +81,51 @@ export default class Monster extends cc.Component {
         }
     }
 
+    // =========================================================================
+    // ★ 最強制復活 init 函式 (由 Manager 撈出節點時手動呼叫)
+    // =========================================================================
+    public initFromPool(spawnX: number) {
+        console.log(`✨ 怪物 ${this.node.name} 正在進行記憶洗腦復活...`);
+
+        this.currentHealth = this.maxHealth;
+        this.isDead = false;
+        this.isAttacking = false;
+        this.isKnockedBack = false;
+        this.moveDirection = -1; 
+        
+        this.startX = spawnX; 
+
+        if (this.rb) {
+            this.rb.linearVelocity = cc.v2(0, 0);
+            
+            // 延遲一幀保險，確保剛體順利解鎖為 Dynamic
+            this.scheduleOnce(() => {
+                if (this.rb && cc.isValid(this.rb.node)) {
+                    this.rb.type = cc.RigidBodyType.Dynamic; 
+                    console.log(`🦾 怪物 ${this.node.name} 剛體已成功解鎖為 Dynamic`);
+                }
+            }, 0);
+        }
+
+        let collider = this.getComponent(cc.PhysicsCollider);
+        if (collider) {
+            collider.sensor = false; 
+            collider.apply(); 
+        }
+
+        this.node.opacity = 255; 
+        this.node.scaleX = Math.abs(this.node.scaleX) * this.moveDirection; 
+
+        if (this.anim) {
+            this.anim.stop(); 
+            this.anim.play('onion_walk');
+        }
+    }
+    // =========================================================================
+
     update(dt: number) {
         if (!this.rb) return;
-
         if (this.isDead || this.isKnockedBack) return;
-
         if (this.isAttacking) return; 
 
         this.checkPlayerInSight();
@@ -111,23 +152,16 @@ export default class Monster extends cc.Component {
         if (this.players.length === 0 || this.isDead || this.isKnockedBack) return;
 
         let canSeePlayer = false;
-
-        // 獲取怪物的世界座標
         let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
 
-        // 用迴圈檢查每一個活著的玩家
         for (let i = 0; i < this.players.length; i++) {
             let player = this.players[i];
-            
             if (!player || !player.isValid) continue;
 
-            // ★ 關鍵修復：將玩家座標也轉為世界座標，消除因父節點層級不同帶來的本地座標誤差
             let playerWorldPos = player.convertToWorldSpaceAR(cc.v2(0, 0));
-
             let dx = playerWorldPos.x - monsterWorldPos.x;
             let dy = playerWorldPos.y - monsterWorldPos.y;
 
-            // 微調：稍微放大高度容錯（設為 80 像素），避免因新角色 Prefab 的圖片中心點（Anchor）設定不同導致高度判定失敗
             if (Math.abs(dy) > 80) continue; 
 
             if (this.moveDirection === 1 && dx > 0 && dx <= this.detectDistance) {
@@ -172,10 +206,7 @@ export default class Monster extends cc.Component {
     }
 
     private fireBullet() {
-        if (!this.bulletPrefab) {
-            console.warn("未綁定子彈 Prefab！");
-            return;
-        }
+        if (!this.bulletPrefab) return;
 
         let bulletNode = cc.instantiate(this.bulletPrefab);
         bulletNode.parent = this.node.parent;
@@ -209,17 +240,14 @@ export default class Monster extends cc.Component {
         }
 
         if (otherNodeName === 'Player1' || otherNodeName === 'Player2') {
-            // 透過 PlayerHealth.takeDamage 扣血 — 內建無敵時間 + 'hp-changed' event 廣播給 PlayerHUD
             const ph = otherCollider.node.getComponent('PlayerHealth') as any;
             if (ph) ph.takeDamage(this.attackDamage, this.node);
         }
 
         if (otherNodeName === 'Bullet') {
             let bulletNode = otherCollider.node;
-
             let bulletWorldPos = bulletNode.convertToWorldSpaceAR(cc.v2(0, 0));
             let monsterWorldPos = this.node.convertToWorldSpaceAR(cc.v2(0, 0));
-            
             let knockbackDir = monsterWorldPos.x >= bulletWorldPos.x ? 1 : -1;
 
             this.scheduleOnce(() => {
@@ -265,11 +293,9 @@ export default class Monster extends cc.Component {
         this.scheduleOnce(() => {
             if (!this.isDead) { 
                 this.isKnockedBack = false;
-                
                 if (this.rb) {
                     this.rb.linearVelocity = cc.v2(0, this.rb.linearVelocity.y);
                 }
-
                 if (this.anim) {
                     this.anim.play('onion_walk');
                 }
@@ -280,7 +306,6 @@ export default class Monster extends cc.Component {
     private die() {
         if (this.isDead) return;
         this.isDead = true; 
-
         console.log("怪物死亡！等待物理引擎解鎖...");
 
         this.scheduleOnce(() => {
@@ -301,7 +326,12 @@ export default class Monster extends cc.Component {
 
             this.scheduleOnce(() => {
                 if (this.node.isValid) { 
-                    this.node.destroy();
+                    let manager = cc.find('Canvas').getComponent('MonsterManager') as any;
+                    if (manager && typeof manager.recycleMonster === 'function') {
+                        manager.recycleMonster(this.node);
+                    } else {
+                        this.node.destroy(); 
+                    }
                 }
             }, 1.0); 
         }, 0); 

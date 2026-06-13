@@ -109,6 +109,12 @@ export default class PlayerHealth extends cc.Component {
                 if (c) c.enabled = false;
             }
         }
+
+        // ====== 🌟 這裡是你新增的：玩家死掉後切換場景 ======
+        // 延遲 1.5 秒後切換，這樣玩家才不會死掉的瞬間畫面就閃掉
+        this.scheduleOnce(() => {
+            cc.director.loadScene("LoseScene"); // 確保你的失敗場景名稱叫做 LoseScene
+        }, 1.5);
     }
 
     private _tickFlash(dt: number) {
@@ -126,4 +132,5 @@ export default class PlayerHealth extends cc.Component {
         if (this.flashNode) this.flashNode.opacity = 255;
         this._flashOn = true;
     }
+    
 }

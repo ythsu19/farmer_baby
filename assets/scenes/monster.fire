@@ -84,10 +84,10 @@
         "__id__": 85
       },
       {
-        "__id__": 91
+        "__id__": 92
       },
       {
-        "__id__": 97
+        "__id__": 99
       },
       {
         "__id__": 36
@@ -99,13 +99,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 103
+        "__id__": 106
       },
       {
-        "__id__": 104
+        "__id__": 107
       },
       {
-        "__id__": 105
+        "__id__": 108
       }
     ],
     "_prefab": null,
@@ -2998,7 +2998,9 @@
         "__id__": 90
       }
     ],
-    "_prefab": null,
+    "_prefab": {
+      "__id__": 91
+    },
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
@@ -3181,6 +3183,17 @@
     "_id": "f9yxqE5SJDjYFc+ndqLZRS"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 85
+    },
+    "asset": {
+      "__uuid__": "c721f64a-4186-48b7-984e-9dbe67cd526d"
+    },
+    "fileId": "",
+    "sync": false
+  },
+  {
     "__type__": "cc.Node",
     "_name": "Mushroom",
     "_objFlags": 0,
@@ -3190,9 +3203,6 @@
     "_children": [],
     "_active": true,
     "_components": [
-      {
-        "__id__": 92
-      },
       {
         "__id__": 93
       },
@@ -3204,9 +3214,14 @@
       },
       {
         "__id__": 96
+      },
+      {
+        "__id__": 97
       }
     ],
-    "_prefab": null,
+    "_prefab": {
+      "__id__": 98
+    },
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
@@ -3259,7 +3274,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 91
+      "__id__": 92
     },
     "_enabled": true,
     "_materials": [
@@ -3291,7 +3306,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 91
+      "__id__": 92
     },
     "_enabled": true,
     "_type": 2,
@@ -3316,7 +3331,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 91
+      "__id__": 92
     },
     "_enabled": true,
     "tag": 0,
@@ -3342,7 +3357,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 91
+      "__id__": 92
     },
     "_enabled": true,
     "moveSpeed": 100,
@@ -3363,7 +3378,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 91
+      "__id__": 92
     },
     "_enabled": true,
     "_defaultClip": {
@@ -3387,6 +3402,17 @@
     "_id": "47YKEBDFZL8qBROnE5Zdsc"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 92
+    },
+    "asset": {
+      "__uuid__": "b133c4e0-d2c0-449d-96f5-d300b135b158"
+    },
+    "fileId": "",
+    "sync": false
+  },
+  {
     "__type__": "cc.Node",
     "_name": "Chili",
     "_objFlags": 0,
@@ -3397,12 +3423,6 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 98
-      },
-      {
-        "__id__": 99
-      },
-      {
         "__id__": 100
       },
       {
@@ -3410,9 +3430,17 @@
       },
       {
         "__id__": 102
+      },
+      {
+        "__id__": 103
+      },
+      {
+        "__id__": 104
       }
     ],
-    "_prefab": null,
+    "_prefab": {
+      "__id__": 105
+    },
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
@@ -3465,7 +3493,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 97
+      "__id__": 99
     },
     "_enabled": true,
     "_materials": [
@@ -3497,7 +3525,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 97
+      "__id__": 99
     },
     "_enabled": true,
     "_type": 2,
@@ -3522,7 +3550,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 97
+      "__id__": 99
     },
     "_enabled": true,
     "tag": 0,
@@ -3548,7 +3576,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 97
+      "__id__": 99
     },
     "_enabled": true,
     "moveSpeed": 100,
@@ -3571,7 +3599,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 97
+      "__id__": 99
     },
     "_enabled": true,
     "_defaultClip": {
@@ -3593,6 +3621,17 @@
     ],
     "playOnLoad": true,
     "_id": "40+Lo3HvhOLKI2JY39ROF4"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 99
+    },
+    "asset": {
+      "__uuid__": "95c1a3f8-062d-404b-8cc5-03a3bb414bb3"
+    },
+    "fileId": "",
+    "sync": false
   },
   {
     "__type__": "cc.Canvas",
@@ -3650,6 +3689,14 @@
       "__uuid__": "f12043bb-7a6d-468c-8416-f647be869ccb"
     },
     "bgmVolume": 0.5,
+    "monsterPrefab": {
+      "__uuid__": "95c1a3f8-062d-404b-8cc5-03a3bb414bb3"
+    },
+    "totalWaves": 3,
+    "monstersPerWave": 2,
+    "waveInterval": 0,
+    "spawnPointX": 300,
+    "spawnPointY": -100,
     "_id": "f3+E4VcjRF7Y5I/uW+lA8O"
   }
 ]
