@@ -1,3 +1,5 @@
+import PauseManager from "./PauseManager";
+
 const { ccclass, property } = cc._decorator;
 
 enum TopDownPlayerState {
@@ -39,6 +41,10 @@ export default class TopDownPlayer extends cc.Component {
     }
 
     onKeyDown(event: cc.Event.EventKeyboard) {
+        if (PauseManager.isPaused) {
+            return;
+        }
+
         switch (event.keyCode) {
             case cc.macro.KEY.w:
             case cc.macro.KEY.up:
@@ -89,6 +95,13 @@ export default class TopDownPlayer extends cc.Component {
     update(dt: number) {
         if (!this.rb) return;
 
+        if (PauseManager.isPaused) {
+            this.moveDir = cc.v2(0, 0);
+            this.rb.linearVelocity = cc.v2(0, 0);
+            this.changeState(TopDownPlayerState.IDLE);
+            return;
+        }
+
         let dir = cc.v2(this.moveDir.x, this.moveDir.y);
 
         if (dir.mag() > 0) {
@@ -117,12 +130,12 @@ export default class TopDownPlayer extends cc.Component {
 
         this.lastMoveDir = cc.v2(dir.x, dir.y);
 
-        this.node.emit('move-dir-changed', dir);
+        this.node.emit("move-dir-changed", dir);
 
         if (dir.x > 0) {
-            this.node.emit('facing-changed', true);
+            this.node.emit("facing-changed", true);
         } else if (dir.x < 0) {
-            this.node.emit('facing-changed', false);
+            this.node.emit("facing-changed", false);
         }
     }
 
@@ -132,7 +145,7 @@ export default class TopDownPlayer extends cc.Component {
         const oldState = this.currentState;
         this.currentState = newState;
 
-        this.node.emit('state-changed', {
+        this.node.emit("state-changed", {
             from: oldState,
             to: newState
         });
