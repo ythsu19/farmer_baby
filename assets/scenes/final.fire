@@ -2412,7 +2412,7 @@
     },
     "_enabled": true,
     "maxHealth": 250,
-    "attackDamage": 2,
+    "attackDamage": 50,
     "attackHitBoxes": [
       {
         "__id__": 18
