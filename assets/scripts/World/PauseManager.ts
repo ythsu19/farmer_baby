@@ -6,16 +6,18 @@ export default class PauseManager extends cc.Component {
     @property(cc.Node)
     pausePanel: cc.Node = null;
 
-    private isPaused: boolean = false;
+    public static isPaused: boolean = false;
 
     onLoad() {
+        PauseManager.isPaused = false;
+
         if (this.pausePanel) {
             this.pausePanel.active = false;
         }
     }
 
     public togglePause() {
-        if (this.isPaused) {
+        if (PauseManager.isPaused) {
             this.resumeGame();
         } else {
             this.pauseGame();
@@ -23,7 +25,7 @@ export default class PauseManager extends cc.Component {
     }
 
     public pauseGame() {
-        this.isPaused = true;
+        PauseManager.isPaused = true;
 
         if (this.pausePanel) {
             this.pausePanel.active = true;
@@ -33,7 +35,7 @@ export default class PauseManager extends cc.Component {
     }
 
     public resumeGame() {
-        this.isPaused = false;
+        PauseManager.isPaused = false;
 
         if (this.pausePanel) {
             this.pausePanel.active = false;
