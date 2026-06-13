@@ -150,17 +150,26 @@ export default class PlayerInput extends cc.Component {
         const dom = this._domCanvas;
         if (!dom) return;
         const rect = dom.getBoundingClientRect();
-        const design = cc.view.getDesignResolutionSize();
 
-        // 滑鼠在 DOM canvas 上的 pixel 位置（相對 canvas 左上角）
-        const px = e.clientX - rect.left;
-        const py = e.clientY - rect.top;
+        // 滑鼠在 DOM canvas 上的 CSS pixel 位置（相對 canvas 左上角、左上原點）
+        const cssX = e.clientX - rect.left;
+        const cssY = e.clientY - rect.top;
 
-        // 轉換成 Cocos OpenGL 座標系：左下原點、design resolution 範圍
-        //   x: 直接線性 scale 到 design width
-        //   y: 翻轉（DOM y 向下、OpenGL y 向上）後 scale 到 design height
-        this._aimScreen.x = (px / rect.width) * design.width;
-        this._aimScreen.y = (1 - py / rect.height) * design.height;
+        // ── 為什麼不能用 (px / rect.width) * design.width？ ──
+        //   getScreenToWorldPoint() 期待的輸入是「frame 實際像素座標」
+        //   （= cc.view 的 viewport 座標系，已含 devicePixelRatio 與 fit 黑邊偏移），
+        //   不是 design resolution 座標。兩者只有在「視窗剛好 == design size 且 DPR=1」
+        //   時才相等 → 本機看起來正常，但 deploy 到網頁（視窗比例不同 / 高 DPI 螢幕 /
+        //   SHOW_ALL 黑邊）就會點擊偏移。
+        //
+        //   正解：CSS pixel → frame pixel = 乘上 frameSize / rect 的比例，
+        //   再 y 翻轉成左下原點。frameSize 已經是 cc.view 認知的實際 buffer 尺寸。
+        const frame = cc.view.getFrameSize();
+        const sx = frame.width / rect.width;
+        const sy = frame.height / rect.height;
+
+        this._aimScreen.x = cssX * sx;
+        this._aimScreen.y = frame.height - cssY * sy; // DOM y 向下 → OpenGL y 向上
         this._hasAim = true;
     }
 
