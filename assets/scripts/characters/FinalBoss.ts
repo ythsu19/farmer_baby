@@ -459,6 +459,19 @@ export default class FinalBoss extends cc.Component {
         this.attacks.forEach(a => { if (a.hitbox) a.hitbox.active = false; });
         if (this.cameraNode) this.cameraNode.setPosition(this.cameraOrigin);
         cc.log("【FinalBoss】農夫大魔王倒下！化為塵土金幣雨…");
+        // 暫停一小會，讓死亡特效播完再切場景
+        this.scheduleOnce(() => {
+            try {
+                const scene = cc.director.getScene && cc.director.getScene();
+                const name = scene && scene.name ? scene.name : (scene && scene._name ? scene._name : "");
+                if (name === "Final") {
+                    cc.director.loadScene("EndScene");
+                }
+            } catch (e) {
+                // fallback: 若發生錯誤仍嘗試切換
+                cc.director.loadScene("EndScene");
+            }
+        }, 1.0);
         this.node.destroy();
     }
 }

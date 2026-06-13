@@ -315,8 +315,10 @@ export default class Boss extends cc.Component {
             this._animator.playMove(this.deathAnimName);
         }
 
+        // 🌟 讓 Boss 播完死亡動畫後，直接無條件切換到 EndScene
         this.scheduleOnce(() => {
-            if (this.node && this.node.isValid) this.node.destroy();
+            console.log("Boss 死亡，切換至結局！");
+            cc.director.loadScene("EndScene");
         }, this.destroyDelay);
     }
 }
